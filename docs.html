@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentation — Invisible Work Risk Index (IWRI)</title>
+  <meta name="description" content="Full documentation for the Invisible Work Risk Index (IWRI) Atlassian Forge app. Install, onboarding, dashboard, drill-down, reports, methodology, settings, access control, privacy and security, pricing, and FAQ.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..500&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #F4EFE4;
+      --paper-deep: #EAE4D5;
+      --paper-card: #FBF7EE;
+      --ink: #1A1E2B;
+      --ink-soft: #3A4050;
+      --ink-mute: rgba(26, 30, 43, 0.62);
+      --ink-faint: rgba(26, 30, 43, 0.42);
+      --rule: rgba(26, 30, 43, 0.14);
+      --rule-strong: rgba(26, 30, 43, 0.30);
+      --accent: #A04A2B;
+      --accent-deep: #8A3E23;
+      --accent-soft: rgba(160, 74, 43, 0.10);
+      --healthy: #4F6E54;
+      --low: #7A8A4A;
+      --moderate: #B48635;
+      --elevated: #A15F2C;
+      --high: #8C3B27;
+
+      --serif: "Newsreader", "Iowan Old Style", Georgia, serif;
+      --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --mono: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    html {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      scroll-behavior: smooth;
+    }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.6;
+      font-weight: 400;
+      position: relative;
+    }
+    body::before {
+      content: "";
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 1;
+      opacity: 0.35;
+      mix-blend-mode: multiply;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.10  0 0 0 0 0.12  0 0 0 0 0.17  0 0 0 0.08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    }
+
+    nav.top, main, footer { position: relative; z-index: 2; }
+
+    /* Typography */
+    h1, h2, h3, h4 { margin: 0; font-weight: 400; }
+    a { color: inherit; }
+
+    .kicker {
+      font-family: var(--mono); font-size: 11px;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--ink-mute); font-weight: 500;
+    }
+
+    /* Top nav */
+    nav.top {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(244, 239, 228, 0.9);
+      backdrop-filter: saturate(1.2) blur(12px);
+      -webkit-backdrop-filter: saturate(1.2) blur(12px);
+      border-bottom: 1px solid var(--rule);
+    }
+    nav.top .inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0.9rem 1.6rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    nav.top .mark {
+      display: inline-flex; align-items: center; gap: 0.7rem;
+      font-family: var(--mono); font-size: 12px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink); text-decoration: none; font-weight: 500;
+    }
+    nav.top ul {
+      list-style: none; margin: 0; padding: 0;
+      display: flex; gap: 1.6rem; align-items: center;
+    }
+    nav.top ul a {
+      font-size: 14px; color: var(--ink-mute);
+      text-decoration: none; transition: color 0.15s;
+    }
+    nav.top ul a:hover { color: var(--ink); }
+
+    /* Layout */
+    .layout {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 3rem;
+      padding: 3rem 1.6rem 5rem;
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; gap: 2rem; }
+      aside.toc { position: static; max-height: none; padding-top: 0; }
+    }
+
+    /* Sticky TOC */
+    aside.toc {
+      position: sticky; top: 80px;
+      align-self: start;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    }
+    aside.toc .toc-title {
+      font-family: var(--mono); font-size: 11px;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--ink-mute); font-weight: 500;
+      margin-bottom: 1rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--rule-strong);
+    }
+    aside.toc ol {
+      list-style: none; margin: 0; padding: 0;
+      counter-reset: toc;
+    }
+    aside.toc ol li {
+      counter-increment: toc;
+      margin-bottom: 0.15rem;
+    }
+    aside.toc ol li a {
+      display: block;
+      padding: 0.32rem 0;
+      font-size: 13.5px;
+      color: var(--ink-soft);
+      text-decoration: none;
+      transition: color 0.12s, border-color 0.12s;
+      border-left: 2px solid transparent;
+      padding-left: 0.9rem;
+      margin-left: -0.9rem;
+      line-height: 1.4;
+    }
+    aside.toc ol li a::before {
+      content: counter(toc, decimal-leading-zero);
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--ink-faint);
+      margin-right: 0.7rem;
+      letter-spacing: 0.1em;
+    }
+    aside.toc ol li a:hover {
+      color: var(--accent);
+      border-left-color: var(--accent);
+    }
+
+    /* Main content */
+    article {
+      max-width: 760px;
+      font-size: 16px;
+    }
+    article > header {
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--rule);
+    }
+    article > header .eyebrow { margin-bottom: 1rem; }
+    article h1.title {
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(2.4rem, 5vw, 3.4rem);
+      letter-spacing: -0.018em;
+      line-height: 1.04;
+      max-width: 20ch;
+      margin-bottom: 1rem;
+    }
+    article > header p.lede {
+      font-family: var(--serif);
+      font-style: italic;
+      font-weight: 300;
+      font-size: 1.2rem;
+      line-height: 1.5;
+      color: var(--ink-soft);
+      max-width: 42rem;
+      margin: 0;
+    }
+
+    section.doc { margin-bottom: 4rem; scroll-margin-top: 90px; }
+
+    section.doc > h2 {
+      font-family: var(--serif);
+      font-weight: 420;
+      font-size: 2rem;
+      letter-spacing: -0.012em;
+      line-height: 1.15;
+      margin-bottom: 1.4rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--rule);
+      display: flex; align-items: baseline; gap: 0.8rem;
+    }
+    section.doc > h2 .num {
+      font-family: var(--mono);
+      font-weight: 500;
+      font-size: 0.85rem;
+      letter-spacing: 0.22em;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+
+    section.doc h3 {
+      font-family: var(--serif);
+      font-weight: 440;
+      font-size: 1.35rem;
+      letter-spacing: -0.008em;
+      line-height: 1.2;
+      margin: 2rem 0 0.8rem;
+      color: var(--ink);
+    }
+
+    section.doc h4 {
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 0.92rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 1.4rem 0 0.5rem;
+      color: var(--ink);
+    }
+
+    article p {
+      margin: 0 0 1em;
+      color: var(--ink-soft);
+    }
+    article p strong { color: var(--ink); font-weight: 500; }
+    article ul, article ol {
+      margin: 0 0 1.2em;
+      padding-left: 1.6rem;
+      color: var(--ink-soft);
+    }
+    article li { margin-bottom: 0.35em; line-height: 1.6; }
+    article li strong { color: var(--ink); font-weight: 500; }
+
+    article a.inline-link {
+      color: var(--ink);
+      text-decoration: underline;
+      text-decoration-color: var(--rule-strong);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.2em;
+    }
+    article a.inline-link:hover {
+      color: var(--accent);
+      text-decoration-color: var(--accent);
+    }
+
+    article code {
+      font-family: var(--mono);
+      font-size: 0.9em;
+      padding: 0.12em 0.35em;
+      background: var(--paper-deep);
+      border: 1px solid var(--rule);
+      color: var(--ink);
+    }
+
+    article .callout {
+      margin: 1.4rem 0;
+      padding: 1.1rem 1.3rem;
+      background: var(--paper-card);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 4px 4px 0;
+    }
+    article .callout p { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
+    article .callout strong { color: var(--ink); }
+
+    article table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.4rem 0;
+      font-size: 0.94rem;
+    }
+    article th {
+      text-align: left;
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+      font-weight: 500;
+      padding: 0.65rem 0.6rem;
+      border-bottom: 1px solid var(--rule-strong);
+    }
+    article td {
+      padding: 0.75rem 0.6rem;
+      border-bottom: 1px solid var(--rule);
+      vertical-align: top;
+      color: var(--ink-soft);
+    }
+    article td strong { color: var(--ink); }
+
+    .formula {
+      font-family: var(--mono);
+      font-size: 0.92rem;
+      background: var(--paper-deep);
+      border: 1px dashed var(--rule-strong);
+      padding: 1rem 1.2rem;
+      margin: 1rem 0 1.4rem;
+      color: var(--ink);
+      line-height: 1.5;
+      overflow-x: auto;
+    }
+    .formula .label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+
+    .risk-chip {
+      display: inline-block;
+      padding: 0.1em 0.55em;
+      border-radius: 2px;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 500;
+      color: #FFF;
+      vertical-align: 0.1em;
+    }
+    .risk-chip.healthy { background: var(--healthy); }
+    .risk-chip.low { background: var(--low); }
+    .risk-chip.moderate { background: var(--moderate); }
+    .risk-chip.elevated { background: var(--elevated); }
+    .risk-chip.high { background: var(--high); }
+    .risk-chip.insufficient { background: var(--ink-mute); }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--rule);
+      padding: 2rem 1.6rem 2.5rem;
+      max-width: 1280px;
+      margin: 0 auto;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+    }
+    footer .inner {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1.4rem 2rem;
+    }
+    footer a {
+      color: var(--ink-mute);
+      text-decoration: none;
+      border-bottom: 1px solid var(--rule);
+      transition: color 0.12s, border-color 0.12s;
+    }
+    footer a:hover { color: var(--accent); border-color: var(--accent); }
+    footer .dot { color: var(--rule-strong); padding: 0 0.45rem; }
+
+    ::selection { background: var(--accent); color: var(--paper); }
+  </style>
+</head>
+<body>
+
+<nav class="top">
+  <div class="inner">
+    <a class="mark" href="about.html">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+        <rect x="1" y="1" width="4" height="4" fill="currentColor"/>
+        <rect x="7" y="1" width="4" height="4" fill="currentColor" opacity="0.55"/>
+        <rect x="13" y="1" width="4" height="4" fill="currentColor" opacity="0.25"/>
+        <rect x="1" y="7" width="4" height="4" fill="currentColor" opacity="0.55"/>
+        <rect x="7" y="7" width="4" height="4" fill="#A04A2B"/>
+        <rect x="13" y="7" width="4" height="4" fill="currentColor" opacity="0.55"/>
+        <rect x="1" y="13" width="4" height="4" fill="currentColor" opacity="0.25"/>
+        <rect x="7" y="13" width="4" height="4" fill="currentColor" opacity="0.55"/>
+        <rect x="13" y="13" width="4" height="4" fill="currentColor"/>
+      </svg>
+      IWRI Documentation
+    </a>
+    <ul>
+      <li><a href="about.html">Product</a></li>
+      <li><a href="research.html">Research</a></li>
+      <li><a href="privacy.html">Privacy</a></li>
+      <li><a href="terms.html">Terms</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="layout">
+
+<aside class="toc">
+  <div class="toc-title">On this page</div>
+  <ol>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#install">Install &amp; set-up</a></li>
+    <li><a href="#onboarding">First-run onboarding</a></li>
+    <li><a href="#concepts">Core concepts</a></li>
+    <li><a href="#dashboard">Dashboard</a></li>
+    <li><a href="#drilldown">Team drill-down</a></li>
+    <li><a href="#reports">Reports</a></li>
+    <li><a href="#methodology">Methodology in depth</a></li>
+    <li><a href="#settings">Settings &amp; administration</a></li>
+    <li><a href="#access">Access control</a></li>
+    <li><a href="#privacy">Privacy &amp; security</a></li>
+    <li><a href="#pricing">Pricing &amp; licensing</a></li>
+    <li><a href="#limits">Known limitations</a></li>
+    <li><a href="#faq">FAQ &amp; troubleshooting</a></li>
+    <li><a href="#support">Support</a></li>
+  </ol>
+</aside>
+
+<article>
+  <header>
+    <div class="eyebrow kicker">Invisible Work Risk Index &middot; Documentation &middot; v3.0.0</div>
+    <h1 class="title">Everything IWRI does, how it does it, and how to run it well.</h1>
+    <p class="lede">
+      A reference guide for administrators and end users. Skim it, jump to sections, or read it
+      cover to cover. Each section states the behaviour in plain language, then spells out the
+      exact rules the app follows.
+    </p>
+  </header>
+
+<!-- ========================================================== -->
+<section class="doc" id="overview">
+  <h2><span class="num">&sect; 01</span> Overview</h2>
+
+  <p>
+    The Invisible Work Risk Index (IWRI) is an Atlassian Forge app for Jira Software Cloud. It reads
+    sprint and issue data you already keep in Jira, computes seven behavioural indicators for each
+    eligible Scrum team, and places every team at one of six risk levels on the basis of how much
+    evidence their data shows of <strong>invisible work</strong> — effort occurring outside normal
+    sprint tracking.
+  </p>
+
+  <p>
+    &ldquo;Invisible work&rdquo; is a broad term for the work that drains capacity without reaching
+    a ticket. The friendly kind: mentoring juniors, triaging incidents, fixing things before they
+    become reportable problems, answering questions in Slack. The harder kind: requests that arrive
+    verbally, handovers that stay verbal, tickets written after the fact. Teams carrying a lot of
+    invisible work tend to leave specific signatures in their Jira data. IWRI scores those
+    signatures.
+  </p>
+
+  <h3>Who IWRI is for</h3>
+
+  <ul>
+    <li><strong>Delivery leads and engineering managers</strong> who want to scan a portfolio of
+      Scrum teams and see where attention is worth spending.</li>
+    <li><strong>Agile coaches and ways-of-working practitioners</strong> who want evidence-backed
+      conversation starters for their coaching cadence.</li>
+    <li><strong>Jira site admins and delegated app admins</strong> who configure scope, schedule,
+      access, and administrators.</li>
+  </ul>
+
+  <h3>What IWRI deliberately does <em>not</em> do</h3>
+  <ul>
+    <li>Does not write to Jira. The app declares read-only scopes plus <code>storage:app</code>.</li>
+    <li>Does not track time, log hours, or score individuals. All indicators are team-level.</li>
+    <li>Does not send data outside your Jira Cloud tenancy. The manifest declares no external fetch
+      domains; the Forge sandbox enforces that at runtime.</li>
+    <li>Does not support Kanban projects in v1. They are surfaced as excluded with the reason
+      &ldquo;Kanban (not supported)&rdquo;.</li>
+    <li>Does not expose statistical jargon (z-scores, sigma, alpha) in Dashboard, Reports, Settings,
+      or Onboarding. Those terms appear only inside the Methodology tab.</li>
+    <li>Does not produce scores when fewer than 20 eligible Scrum teams are available; the run
+      fails with a population-minimum message instead of producing statistically unreliable numbers.</li>
+  </ul>
+
+  <div class="callout">
+    <p><strong>IWRI is a screening tool, not a performance scorecard.</strong> Flags indicate patterns
+    worth investigating. They do not confirm problems. Every indicator has alternative, benign
+    explanations; converging signals raise confidence, never certainty. The app and its terms of
+    service explicitly prohibit using scores as a sole basis for performance management, hiring,
+    firing, promotion, or compensation decisions.</p>
+  </div>
+</section>
+
+<!-- ========================================================== -->
+<section class="doc" id="install">
+  <h2><span class="num">&sect; 02</span> Install &amp; set-up</h2>
+
+  <p>
+    IWRI is installed from the Atlassian Marketplace like any other Forge app. A Jira site
+    administrator approves the requested scopes at install time, which is the only moment the app
+    requests user action from the site administrator.
+  </p>
+
+  <h3>Prerequisites</h3>
+  <ul>
+    <li>An Atlassian Jira Cloud site with at least some Scrum-configured projects.</li>
+    <li>A user with the Jira <code>ADMINISTER</code> global permission to perform the install.</li>
+    <li>To produce scores on the first run, at least 20 eligible Scrum teams must be present in the
+      instance (see <a class="inline-link" href="#limits">&sect; 13 Known limitations</a>).</li>
+  </ul>
+
+  <h3>Scopes requested</h3>
+
+  <table>
+    <thead><tr><th>Scope</th><th>Why it is requested</th></tr></thead>
+    <tbody>
+      <tr><td><code>read:project:jira</code></td><td>Identify projects, leads, categories. Used for team attribution and eligibility filtering.</td></tr>
+      <tr><td><code>read:jira-work</code></td><td>Read issues and changelog. The core data source for five of the seven indicators.</td></tr>
+      <tr><td><code>read:jira-user</code></td><td>Resolve display names used in the UI. No user PII is stored.</td></tr>
+      <tr><td><code>read:board-scope:jira-software</code></td><td>Identify Scrum vs Kanban boards. Required to exclude Kanban projects and power the Board Override feature.</td></tr>
+      <tr><td><code>read:sprint:jira-software</code></td><td>Read sprint metadata (start, end, completion state). Required for every sprint-level indicator.</td></tr>
+      <tr><td><code>storage:app</code></td><td>Persist computed scores, admin configuration, and annotations in Forge Key-Value Storage.</td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    No <code>write:*</code> scopes are requested. No <code>manage:*</code> scopes are requested.
+  </p>
+
+  <h3>Post-install state</h3>
+
+  <p>
+    Installing the app does <em>not</em> trigger an immediate computation. All configuration starts
+    at defaults (access mode Open, cadence Daily, no excluded projects, no team groups, the
+    installing admin becomes the sole Jira admin). The first scheduled run fires at the platform's
+    daily cadence; an administrator can run it on demand at any time from Settings &rarr; Recompute.
+  </p>
+</section>
+
+<!-- ========================================================== -->
+<section class="doc" id="onboarding">
+  <h2><span class="num">&sect; 03</span> First-run onboarding</h2>
+
+  <p>
+    The first administrator to open IWRI after install is greeted by a guided seven-step onboarding
+    dialog. The state is stored per Jira site (not per admin), so if one admin pauses at step 4, the
+    next admin to open the app resumes at step 4.
+  </p>
+
+  <h3>The seven steps</h3>
+
+  <ol>
+    <li><strong>Welcome.</strong> Orients the admin to what IWRI is and what the tour will cover.</li>
+    <li><strong>Groups.</strong> Optional. Admins can create named team groups that group
+      projects for reporting purposes (e.g. &ldquo;Payments stream&rdquo;, &ldquo;Platform teams&rdquo;).</li>
+    <li><strong>Access.</strong> Choose one of three access modes: Open, Project-scoped,
+      Admin-granted. See <a class="inline-link" href="#access">&sect; 10 Access control</a>.</li>
+    <li><strong>Administrators.</strong> Delegate app-admin rights to non-Jira-admins (optional).</li>
+    <li><strong>Schedule.</strong> Choose recompute cadence: Daily or Weekly.</li>
+    <li><strong>Compute.</strong> Optionally kick off the first computation on demand rather than
+      waiting for the scheduled trigger.</li>
+    <li><strong>Notes.</strong> Introduction to team annotations — free-text notes admins can
+      attach to any team, visible to anyone with access to that team's scores.</li>
+  </ol>
+
+  <p>
+    Any step can be skipped. The entire flow can be skipped with &ldquo;Do this later&rdquo;, which
+    records an <code>onboarding:state</code> of <code>skipped</code>. Admins can resume onboarding
+    from a banner that appears at the top of the Settings tab whenever the state is not
+    <code>completed</code>.
+  </p>
+</section>
+
+<!-- ========================================================== -->
+<section class="doc" id="concepts">
+  <h2><span class="num">&sect; 04</span> Core concepts</h2>
+
+  <p>Four ideas underpin every IWRI screen:</p>
+
+  <h3>1. Invisible work</h3>
+  <p>
+    Work that drains team capacity but does not show up as a Jira issue, or does not show up at the
+    time the work actually happens. Mentoring, incident triage, informal support, verbal handovers,
+    ticket-after-the-fact documentation. It is a real dimension of engineering work; it is simply
+    under-tracked.
+  </p>
+
+  <h3>2. Behavioural signatures</h3>
+  <p>
+    Teams carrying significant invisible work tend to leave specific, measurable patterns in their
+    Jira data. IWRI computes seven of these patterns ("indicators") from the last eight completed
+    sprints within a 90-day window for every eligible Scrum team. Each indicator is a single
+    numerical value with a specific formula.
+  </p>
+
+  <h3>3. Relative standardisation</h3>
+  <p>
+    Raw indicator values are measured in different units (coefficients of variation, ratios,
+    proportions) and are not directly comparable. Each raw value is z-score standardised against the
+    scored population for your Jira instance. A z-score of 1 means &ldquo;one standard deviation
+    above the population mean, in the direction of higher risk&rdquo;. Standardisation is always
+    relative to <em>your</em> teams, never an industry benchmark.
+  </p>
+
+  <h3>4. Risk levels</h3>
+  <p>
+    Each team receives exactly one of six risk levels, derived from how many of five flags fire for
+    that team:
+  </p>
+
+  <table>
+    <thead><tr><th>Risk level</th><th>Flag count</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><span class="risk-chip healthy">Healthy</span></td><td>0 flags</td><td>No indicator exceeds the flag threshold.</td></tr>
+      <tr><td><span class="risk-chip low">Low</span></td><td>1 flag</td><td>One signature present; isolated pattern worth context.</td></tr>
+      <tr><td><span class="risk-chip moderate">Moderate</span></td><td>2 flags</td><td>Two converging signatures; a conversation is warranted.</td></tr>
+      <tr><td><span class="risk-chip elevated">Elevated</span></td><td>3 flags</td><td>Three converging signatures; active attention recommended.</td></tr>
+      <tr><td><span class="risk-chip high">High</span></td><td>4–5 flags</td><td>Strong convergence; investigate with the team lead.</td></tr>
+      <tr><td><span class="risk-chip insufficient">Insufficient data</span></td><td>n/a</td><td>Too few sprints, null indicators, or partial coverage.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========================================================== -->
+<section class="doc" id="dashboard">
+  <h2><span class="num">&sect; 05</span> Dashboard</h2>
+
+  <p>
+    The Dashboard is the primary view. It shows every eligible Scrum team in your site as a card,
+    colour-banded by risk level, alongside a hero summary that states the population-level position
+    in one sentence.
+  </p>
+
+  <h3>Intro bar and freshness</h3>
+  <p>
+    The intro bar, present on every tab, shows the app icon, the introductory paragraph, and a
+    freshness badge stating when the current scores were computed. If a run is currently in flight,
+    a &ldquo;Recomputing&rdquo; pill appears; it is visible to every user, not only admins.
+  </p>
+
+  <h3>Hero summary</h3>
+  <p>
+    The hero summary is a one-sentence statement at the top of the dashboard. The exact wording
+    adapts to the population:
+  </p>
+  <ul>
+    <li>If every team is Healthy: &ldquo;All teams are healthy. No elevated invisible work risk
+      detected.&rdquo;</li>
+    <li>If one or more teams are at Elevated or High risk:
+      &ldquo;N of M teams show elevated invisible work risk.&rdquo;</li>
+    <li>Otherwise: &ldquo;N of M teams show signs of invisible work.&rdquo;</li>
+  </ul>
+
+  <h3>Team card grid</h3>
+  <p>
+    Each card displays the project code, the project name, the current risk level, and the number
+    of flags firing out of the five applicable. A coloured band at the top of the card encodes risk
+    level for fast scanning. Clicking a card opens the drill-down view.
+  </p>
+
+  <h3>Bookmarks</h3>
+  <p>
+    Any user with access can bookmark a team. Bookmarked teams are pinned to the top of the grid on
+    their next visit. Bookmarks are stored per user, per site.
+  </p>
+
+  <h3>Excluded teams</h3>
+  <p>
+    Teams that were considered but did not meet eligibility criteria are listed in a collapsible
+    section below the main grid (admin-visible by default; see <a class="inline-link" href="#access">&sect; 10</a>).
+    Each excluded team shows the reason (Kanban, too few sprints, too few active assignees, etc.)
+    so admins can decide whether to adjust configuration.
+  </p>
+</section>
+
+<!-- ========================================================== -->
+<section class="doc" id="drilldown">
+  <h2><span class="num">&sect; 06</span> Team drill-down</h2>
+
+  <p>
+    Clicking a team card opens the drill-down view, replacing the card grid in place. A Back button
+    returns to the grid. The drill-down is where managers and coaches do the real work: read the
+    flags, inspect the indicator evidence, decide whether a conversation is warranted.
+  </p>
+
+  <h3>What you see</h3>
+  <ul>
+    <li><strong>Team header</strong> with the project code, name, current risk level, and the
+      number of sprints analysed.</li>
+    <li><strong>Flag cards</strong> for every flag that fired, each with a plain-language
+      explanation of what the signature means and what it might suggest.</li>
+    <li><strong>Indicator evidence</strong>: for every indicator, the raw value, the z-score against
+      the population, and a small sparkline-style visual where applicable.</li>
+    <li><strong>Sprint-level evidence</strong>: a drill into which sprints triggered which
+      indicators, where the data exists.</li>
+    <li><strong>Annotations panel</strong>: free-text notes authored by admins, visible to anyone
+      with access to the team. Notes can carry an optional expiry date.</li>
+    <li><strong>Board override (admin-only)</strong>: a dropdown to manually select which Scrum
+      board represents the team's planning, if IWRI's automatic selection is wrong.</li>
+  </ul>
+
+  <h3>Plain language by design</h3>
+  <p>
+    The flag cards deliberately avoid statistical terms. Z-scores and sigma notation appear only in
+    the Methodology tab. The flag copy is written to start a conversation, not to render a verdict:
+    &ldquo;This team tracks fewer items per developer than peers, which may indicate work happening
+    outside Jira&rdquo;, not &ldquo;z(ticketDensity) = -1.3, flag fires&rdquo;.
+  </p>
+
+  <h3>Board override</h3>
+  <p>
+    Jira projects can have multiple boards. IWRI auto-selects the most active Scrum board. If that
+    selection is incorrect, an admin can override it via the drill-down. Saving a board override
+    triggers an immediate recompute for the affected team; progress is shown live in the drill-down
+    with a spinner and stage indicator.
+  </p>
+
+  <h3>Annotations</h3>
+  <p>
+    Annotations let admins record context that persists across recomputes: &ldquo;Team just
+    absorbed the Billing pod — expect volatility for two sprints&rdquo;, &ldquo;On-call rotation
+    started 15 April&rdquo;, etc. Non-admins can read annotations but not edit them. Annotations
+    can have an optional expiry date, after which they stop being displayed (but are preserved in
+    storage).
+  </p>
+</section>
+
+<!-- ========================================================== -->
+<section class="doc" id="reports">
+  <h2><span class="num">&sect; 07</span> Reports</h2>
+
+  <p>
+    The Reports tab shifts the focus from individual teams to the scored population as a whole.
+    It is the primary view for agile coaches and ways-of-working practitioners who want to
+    understand org-wide dynamics, not just outliers.
+  </p>
+
+  <p>Five sub-reports are available:</p>
+
+  <h3>Risk Overview</h3>
+  <p>
+    A distribution chart showing how many teams fall into each of the six risk levels. Useful for
+    tracking movement over time (&ldquo;last quarter we had 3 High, this quarter we have 1&rdquo;).
+  </p>
+
+  <h3>Flag Patterns</h3>
+  <p>
+    Flag co-occurrence analysis: which pairs of flags tend to fire together? Where certain flag
+    combinations are especially common in your population, the report surfaces them with a plain-
+    language interpretation (for example, combined <em>Tracking per Person</em> and <em>Commitment
+    Gaps</em> may indicate significant invisible workload in ticketing-averse teams).
+  </p>
+
+  <h3>Compare Teams</h3>
+  <p>
+    Side-by-side comparison of up to four selected teams. Useful for before/after analyses or for
+    comparing teams within a group.
+  </p>
+
+  <h3>Excluded Teams</h3>
+  <p>
+    A reference view listing every team that was considered but not scored, with the exact
+    exclusion reason. Helps admins understand why a team they expected to see is missing.
+  </p>
+
+  <h3>Distributions</h3>
+  <p>
+    Raw-value distributions of each of the seven indicators across the scored population, with
+    partial-data coverage noted. This is the report that most directly surfaces data quality
+    issues in your Jira instance (e.g. a long tail of empty-description tickets).
+  </p>
+</section>
+
+<!-- ========================================================== -->
+<section class="doc" id="methodology">
+  <h2><span class="num">&sect; 08</span> Methodology in depth</h2>
+
+  <p>
+    The in-app Methodology tab is the authoritative reference. This section mirrors its structure
+    and can be read in parallel.
+  </p>
+
+  <h3>Data window</h3>
+  <ul>
+    <li><strong>Sprints analysed:</strong> the last eight completed sprints within a 90-day window,
+      per project.</li>
+    <li><strong>Minimum sprint duration:</strong> seven days. Sprints under seven days are excluded.</li>
+    <li><strong>Issue types:</strong> Story, Task, Bug. Sub-tasks and Epics are excluded.</li>
+    <li><strong>Commitment window:</strong> an issue is &ldquo;committed&rdquo; to a sprint if it was
+      added within two calendar days of sprint start. Issues added later are mid-sprint additions.</li>
+    <li><strong>Team size floor:</strong> three or more distinct assignees across the analysed sprints.</li>
+    <li><strong>Population floor:</strong> 20 eligible Scrum teams in the site, or the run fails.</li>
+  </ul>
+
+  <h3>Eligibility rules (exhaustive)</h3>
+  <ol>
+    <li>Project board is Scrum (Kanban excluded as unsupported in v1).</li>
+    <li>Project has at least one completed sprint within 90 days.</li>
+    <li>Completed sprints within the 90-day window with duration ≥ 7 days: at least 2 required.</li>
+    <li>At least three distinct assignees across the analysed sprints.</li>
+    <li>Project not manually excluded by an admin (Settings &rarr; Excluded Projects).</li>
+    <li>Project fits the global population cap (details surface in the Methodology tab).</li>
+  </ol>
+
+  <h3>The seven indicators</h3>
+
+  <p>Three feed the composite signal <strong>Completing Less Than Planned</strong>:</p>
+
+  <h4>Velocity Stability</h4>
+  <p>Measures how inconsistent a team's completed work is relative to total demand.</p>
+  <div class="formula"><span class="label">Formula</span>CV(velocity) &minus; CV(demand)</div>
+
+  <h4>Commitment Gaps</h4>
+  <p>Average shortfall between commitments and deliveries. Over-delivery is clamped to zero.</p>
+  <div class="formula"><span class="label">Formula</span>mean( max(0, (committed &minus; completed) / committed) )</div>
+
+  <h4>Work Left Undone</h4>
+  <p>The proportion of committed work that was never started by sprint close.</p>
+  <div class="formula"><span class="label">Formula</span>mean( notStartedCount / committedCount )</div>
+
+  <p>Four are independent signals, each driving its own flag:</p>
+
+  <h4>Tracking per Person (sign-flipped)</h4>
+  <p>Issues tracked per person per sprint-week. Lower value means higher risk; the z-score is
+  multiplied by &minus;1 so that positive z always means higher risk.</p>
+  <div class="formula"><span class="label">Formula</span>mean( totalIssues / teamSize / sprintWeeks )</div>
+
+  <h4>Daily Jira Activity</h4>
+  <p>The proportion of working days with zero Jira activity.</p>
+  <div class="formula"><span class="label">Formula</span>mean( zeroActivityDays / totalWorkingDays )</div>
+
+  <h4>Ticket Descriptions</h4>
+  <p>The proportion of completed tickets with empty descriptions.</p>
+  <div class="formula"><span class="label">Formula</span>mean( emptyDescriptionCount / completedCount )</div>
+
+  <h4>Mid-Sprint Changes</h4>
+  <p>The volatility of mid-sprint additions across sprints.</p>
+  <div class="formula"><span class="label">Formula</span>CV( midSprintAdditions )</div>
+
+  <h3>Z-score standardisation</h3>
+  <p>Every raw value is standardised against the population mean and standard deviation.</p>
+  <div class="formula"><span class="label">Formula</span>z = (raw &minus; population_mean) / population_stddev</div>
+  <p>
+    Standardisation is relative to <em>your</em> population. Cross-organisation comparison is
+    not supported — a team that is z = 1.5 in one organisation might be z = 0 in another.
+  </p>
+
+  <h3>The five flags</h3>
+
+  <table>
+    <thead><tr><th>Flag</th><th>Trigger</th><th>What it may suggest</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Completing Less Than Planned</strong></td><td>composite z &gt; 1</td><td>Velocity unstable, commitments missed, planned work unstarted — convergence of three sprint-delivery signals.</td></tr>
+      <tr><td><strong>Low Ticket Volume per Person</strong></td><td>z(TrackingPerPerson) &gt; 1</td><td>Team tracks fewer items per developer than peers; work may be happening outside Jira.</td></tr>
+      <tr><td><strong>Low Day-to-Day Jira Activity</strong></td><td>z(DailyJiraActivity) &gt; 1</td><td>More zero-activity days than peers; team may be busy elsewhere or in other tools.</td></tr>
+      <tr><td><strong>Tickets Lacking Descriptions</strong></td><td>z(TicketDescriptions) &gt; 1</td><td>Higher proportion of empty descriptions; rushed ticket creation or verbal-only requirements.</td></tr>
+      <tr><td><strong>Unpredictable Mid-Sprint Changes</strong></td><td>z(MidSprintChanges) &gt; 1</td><td>Interruption volume swings unpredictably; recurring disruption from inconsistent sources.</td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    The flag threshold is <strong>strict inequality, z &gt; 1</strong>. A z-score of exactly 1.0
+    does not fire a flag. The strictness is deliberate; converging flags each past a non-trivial
+    threshold are a stronger signal than any one alone.
+  </p>
+
+  <h3>Null propagation</h3>
+  <p>
+    Data gaps are never papered over. If a raw indicator cannot be computed (e.g. a team had zero
+    sprints with committed items), the raw value is null. The resulting z-score is null. Nulls are
+    never replaced with zero or a default. If all seven z-scores are null, the team's state is
+    <span class="risk-chip insufficient">Insufficient data</span>, not Healthy.
+  </p>
+
+  <h3>Reliability</h3>
+  <p>
+    Each indicator has a documented split-half reliability score (the consistency of the pattern
+    when two independent halves of the underlying data are compared). The seven signatures in v1
+    range from 53&thinsp;% (Mid-Sprint Changes) to 86&thinsp;% (Ticket Descriptions). Reliability
+    values are visible in the Methodology tab inside the app.
+  </p>
+
+  <h3>Research provenance</h3>
+  <p>
+    The seven indicators emerged from studying hundreds of Scrum teams across banking,
+    telecommunications, and other sectors. Teams self-reported their invisible-work burden through
+    structured surveys; team leads were interviewed to map how invisible work manifested. Over
+    twenty candidate indicators were tested; only the seven that showed consistent, repeatable
+    correlations with reported invisible work were kept. Full provenance at
+    <a class="inline-link" href="research.html">research.html</a>.
+  </p>
+</section>
+
+<!-- ========================================================== -->
+<section class="doc" id="settings">
+  <h2><span class="num">&sect; 09</span> Settings &amp; administration</h2>
+
+  <p>
+    The Settings tab is admin-only. It is not rendered in the tab list for non-admins; any
+    deep-link attempt is silently discarded. Seven sub-sections are available:
+  </p>
+
+  <h3>Recompute</h3>
+  <p>
+    Trigger a recomputation on demand. The UI shows a spinner and live stage indicator while the
+    job runs (fetching data, computing indicators, standardising, applying flags, persisting).
+    Admins also have a <strong>Clear history</strong> option for wedged states that deletes all
+    historical run records while preserving the last successful score set.
+  </p>
+
+  <h3>Schedule</h3>
+  <p>
+    Choose a cadence of <strong>Daily</strong> or <strong>Weekly</strong>. Changing the cadence
+    auto-triggers a recompute (no-op saves skip the trigger). Live feedback mirrors the Recompute
+    section.
+  </p>
+
+  <h3>Excluded Projects</h3>
+  <p>
+    Manually exclude projects from analysis. The picker is group-aware: projects are grouped by team
+    group where applicable, with per-group <em>Select all</em> toggles. Projects that fail
+    eligibility criteria are still selectable but display an <code>EXCLUDED</code> lozenge.
+  </p>
+
+  <h3>Groups</h3>
+  <p>
+    Create named groups of projects (e.g. &ldquo;Payments stream&rdquo;). Groups are available for
+    organisation-wide reporting and for scoping admin-granted access rules. Each group is a list
+    of project keys.
+  </p>
+
+  <h3>Administrators</h3>
+  <p>
+    Delegate app-admin rights to specific users who are not Jira site admins. An app-admin has full
+    administrative capability within IWRI but no Jira site-admin privileges outside the app. Jira
+    site admins are always implicit IWRI admins.
+  </p>
+
+  <h3>Access</h3>
+  <p>
+    Choose the access mode for the site. See <a class="inline-link" href="#access">&sect; 10
+    Access control</a> for the three modes and their rule schemas.
+  </p>
+
+  <h3>Team Notes</h3>
+  <p>
+    Review, edit, or delete annotations across all teams in one place. This is the bulk editor for
+    the annotations that appear in team drill-downs.
+  </p>
+</section>
+
+<!-- ========================================================== -->
+<section class="doc" id="access">
+  <h2><span class="num">&sect; 10</span> Access control</h2>
+
+  <p>
+    Every access decision runs through a single <code>getAccessStatus</code> resolver on app mount.
+    The resolver returns <code>canAccess</code> (boolean) and <code>isAdmin</code> (boolean). If
+    <code>canAccess</code> is false, the app renders the Access Restricted screen and loads no
+    further data.
+  </p>
+
+  <h3>Access modes</h3>
+
+  <table>
+    <thead><tr><th>Mode</th><th>Who sees data</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Open</strong></td><td>Every user with a Jira licence sees every team's scores. Default on install.</td></tr>
+      <tr><td><strong>Project-scoped</strong></td><td>Users see only the projects on which they hold Jira <code>ADMINISTER_PROJECTS</code> permission. Derived automatically; no rule configuration required.</td></tr>
+      <tr><td><strong>Admin-granted</strong></td><td>Default-denied. Only users explicitly listed in access rules can see data. Rules attach groups or project keys to named users.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Capability matrix</h3>
+
+  <table>
+    <thead><tr><th>Capability</th><th>Site admin</th><th>App admin</th><th>End user (granted)</th><th>End user (denied)</th></tr></thead>
+    <tbody>
+      <tr><td>View Dashboard, Reports, Methodology</td><td>✓</td><td>✓</td><td>✓</td><td>✗ (restricted screen)</td></tr>
+      <tr><td>View Settings tab</td><td>✓</td><td>✓</td><td>✗</td><td>✗</td></tr>
+      <tr><td>Edit configuration</td><td>✓</td><td>✓</td><td>✗</td><td>✗</td></tr>
+      <tr><td>Trigger recompute</td><td>✓</td><td>✓</td><td>✗</td><td>✗</td></tr>
+      <tr><td>Set board override</td><td>✓</td><td>✓</td><td>✗</td><td>✗</td></tr>
+      <tr><td>Add or remove app admins</td><td>✓</td><td>✓</td><td>✗</td><td>✗</td></tr>
+      <tr><td>Add or edit team notes</td><td>✓</td><td>✓</td><td>✗</td><td>✗</td></tr>
+      <tr><td>Bookmark a team</td><td>✓</td><td>✓</td><td>✓</td><td>✗</td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    All admin gates are enforced server-side in the resolvers, not only client-side. UI hiding is
+    defence-in-depth; a non-admin attempting to invoke a write resolver directly receives a
+    structured error envelope without side effect.
+  </p>
+</section>
+
+<!-- ========================================================== -->
+<section class="doc" id="privacy">
+  <h2><span class="num">&sect; 11</span> Privacy &amp; security</h2>
+
+  <p>
+    IWRI is a Forge app. All code runs inside the Atlassian Forge sandbox, on Atlassian's
+    infrastructure, within your Atlassian Cloud tenancy. The developer has no direct access to
+    your site, credentials, tokens, or Jira data at any point, including during support.
+  </p>
+
+  <h3>Data the app accesses</h3>
+  <p>
+    Read-only Jira data as specified by the declared scopes: projects, issues, changelog, boards,
+    sprints, and user display names. All reads are initiated from within the Forge sandbox. The
+    app makes <strong>zero external fetch calls</strong>; the manifest declares no
+    <code>permissions.external.fetch.backend</code> entries, and the Forge runtime silently
+    blocks any undeclared egress.
+  </p>
+
+  <h3>Data the app stores</h3>
+  <p>
+    Only derived aggregates and admin configuration, in Atlassian Forge Key-Value Storage
+    (<code>@forge/kvs</code>), scoped to your installation:
+  </p>
+  <ul>
+    <li>Per-project risk scores and category flags (numerical values, short enum labels).</li>
+    <li>Admin configuration: access mode rules, recompute cadence, excluded projects, team groups,
+      app-admin list.</li>
+    <li>Team annotations (short free-text notes authored by admins, with optional expiry).</li>
+    <li>Run metadata: timestamps, run IDs, stage names, error categories.</li>
+  </ul>
+  <p>
+    The app does <strong>not</strong> store: issue summaries, descriptions, comments, attachments,
+    user PII, sprint names, or issue keys beyond what is needed to label aggregate outputs.
+  </p>
+
+  <h3>Data residency</h3>
+  <p>
+    Follows Atlassian Forge platform residency. The developer operates no external infrastructure;
+    customer data physically resides wherever your Atlassian Cloud tenancy is provisioned.
+  </p>
+
+  <h3>Uninstall</h3>
+  <p>
+    Atlassian Forge purges all app-managed storage when the app is uninstalled. The developer takes
+    no additional action; the platform enforces the purge.
+  </p>
+
+  <h3>Subprocessor</h3>
+  <p>
+    A single subprocessor: Atlassian Pty Ltd, the platform host. No other parties.
+  </p>
+
+  <p>
+    Full details at <a class="inline-link" href="privacy.html">privacy.html</a>.
+  </p>
+</section>
+
+<!-- ========================================================== -->
+<section class="doc" id="pricing">
+  <h2><span class="num">&sect; 12</span> Pricing &amp; licensing</h2>
+
+  <p>
+    IWRI is billed through the Atlassian Marketplace. Atlassian handles all payment,
+    taxation, and invoicing on the developer's behalf. The developer never receives your payment
+    information.
+  </p>
+
+  <h3>Tier ladder</h3>
+
+  <table>
+    <thead><tr><th>Users</th><th>Monthly (USD)</th><th>Annual (USD)</th></tr></thead>
+    <tbody>
+      <tr><td>Up to 10</td><td><strong>Free</strong></td><td><strong>Free</strong></td></tr>
+      <tr><td>25</td><td>$35</td><td>$350</td></tr>
+      <tr><td>50</td><td>$60</td><td>$600</td></tr>
+      <tr><td>100</td><td>$100</td><td>$1,000</td></tr>
+      <tr><td>250</td><td>$200</td><td>$2,000</td></tr>
+      <tr><td>500</td><td>$350</td><td>$3,500</td></tr>
+      <tr><td>1,000</td><td>$600</td><td>$6,000</td></tr>
+      <tr><td>2,000</td><td>$1,000</td><td>$10,000</td></tr>
+      <tr><td>5,000</td><td>$2,000</td><td>$20,000</td></tr>
+      <tr><td>10,000+</td><td>$3,500</td><td>$35,000</td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    Annual is equivalent to approximately ten months per year (~17% discount). A thirty-day free
+    trial is included on every paid tier by the Atlassian Marketplace.
+  </p>
+
+  <h3>Trial or subscription lapse</h3>
+  <p>
+    When a trial ends or a subscription lapses without renewal, the app's paid surfaces
+    (Dashboard, Reports, Settings, Methodology) return a &ldquo;Licence inactive&rdquo; state
+    with a &ldquo;Manage subscription&rdquo; call-to-action that deep-links to the Jira Apps admin
+    page. Onboarding and access-status endpoints remain responsive so an administrator can renew.
+    No data is deleted during a lapse; re-activating the licence restores full access immediately.
+  </p>
+</section>
+
+<!-- ========================================================== -->
+<section class="doc" id="limits">
+  <h2><span class="num">&sect; 13</span> Known limitations</h2>
+
+  <ul>
+    <li><strong>Scrum only in v1.</strong> Kanban projects are explicitly excluded with reason
+      <code>Kanban (not supported)</code>. Extending to Kanban would require a separate indicator
+      set; v1's seven signatures are calibrated against Scrum practice.</li>
+    <li><strong>Population minimum of 20 teams.</strong> Below that, population-relative scoring is
+      statistically fragile. The run fails with a clear message rather than produce unreliable
+      numbers.</li>
+    <li><strong>Relative, not absolute.</strong> Scores are meaningful within your site. Cross-
+      organisation comparison is not supported.</li>
+    <li><strong>Adapted teams may be missed.</strong> Teams that have already accommodated
+      invisible work (e.g. inflated estimates) may not trigger flags because their patterns look
+      &ldquo;normal&rdquo; against the population.</li>
+    <li><strong>Persistence, not prediction.</strong> Reliability values demonstrate that patterns
+      persist across sprint halves; they are not predictive or construct validity.</li>
+    <li><strong>Uniform sizing assumption.</strong> Issue-count-based indicators assume roughly
+      uniform issue size. Highly variable story-point distributions may distort results.</li>
+    <li><strong>Team-size confound.</strong> Daily Jira Activity correlates inversely with team size
+      (r ≈ -0.28). Smaller teams naturally have more zero-activity days. The confound is noted in
+      the Methodology tab; it is not adjusted for.</li>
+    <li><strong>Desktop-primary UI.</strong> Viewports below 1024px do not adapt ideally in v1.</li>
+  </ul>
+</section>
+
+<!-- ========================================================== -->
+<section class="doc" id="faq">
+  <h2><span class="num">&sect; 14</span> FAQ &amp; troubleshooting</h2>
+
+  <h3>Why does my dashboard say &ldquo;Insufficient data&rdquo; for a team I expected to see scored?</h3>
+  <p>
+    Most likely the team has fewer than three distinct assignees across the analysed window, fewer
+    than two completed sprints of ≥ 7 days, or all its sprint-level indicators resolve to null. Open
+    the Reports tab &rarr; Excluded Teams to see the exact reason.
+  </p>
+
+  <h3>I expected to see all of our projects in the population. Why are some missing?</h3>
+  <p>
+    Possible causes: the project is Kanban (excluded in v1); the project has been manually excluded
+    by an admin (Settings &rarr; Excluded Projects); the project has no recent sprints within the
+    90-day window; the project failed the team-size or sprint-duration floor. The Excluded Teams
+    report lists every exclusion with its reason.
+  </p>
+
+  <h3>The run failed with a population-minimum error. What do I do?</h3>
+  <p>
+    IWRI refuses to produce scores on fewer than 20 eligible teams. Either wait for more teams to
+    accrue sprint history, or reduce exclusions. If your organisation genuinely has fewer than 20
+    active Scrum teams, IWRI is not the right fit in v1.
+  </p>
+
+  <h3>Can I compare our scores to another organisation's?</h3>
+  <p>
+    No. Scores are relative to your own population. A team at z = 1.5 in one organisation may be at
+    z = 0 in another. The app deliberately does not support cross-organisation comparison.
+  </p>
+
+  <h3>Are my team members able to see their individual scores?</h3>
+  <p>
+    There are no individual scores. All indicators are team-level aggregates. IWRI does not score,
+    rank, or identify individual contributors. Nothing in the codebase ties an indicator value to a
+    specific person.
+  </p>
+
+  <h3>Will installing IWRI change anything in our Jira data?</h3>
+  <p>
+    No. IWRI holds read-only scopes and performs no writes to Jira. Installing and uninstalling is
+    non-destructive to your Jira content.
+  </p>
+
+  <h3>A computation is stuck. How do I recover?</h3>
+  <p>
+    Open Settings &rarr; Recompute and use the <em>Clear history</em> affordance. It deletes the
+    historical run records that may be in a wedged state while preserving the last successful
+    score set on the Dashboard.
+  </p>
+
+  <h3>Our licence expired mid-use. Did we lose any data?</h3>
+  <p>
+    No. Configuration, annotations, exclusions, and the most recent scores remain in Forge storage
+    during a licence lapse. Re-activating the subscription restores access immediately; no data is
+    re-computed or re-seeded by the reactivation.
+  </p>
+
+  <h3>Who can see annotations on a team?</h3>
+  <p>
+    Anyone with access to that team's scores under the current access mode. Annotations are
+    visibility-coupled to scores. In project-scoped mode, only users with project-admin rights on
+    that project see the annotations.
+  </p>
+</section>
+
+<!-- ========================================================== -->
+<section class="doc" id="support">
+  <h2><span class="num">&sect; 15</span> Support</h2>
+
+  <p>
+    IWRI is developed and maintained by Ayman Idris (ABN 59 540 661 752), based in Sydney, Australia.
+  </p>
+
+  <ul>
+    <li><strong>Email:</strong> <a class="inline-link" href="mailto:idrisayman88@gmail.com">idrisayman88@gmail.com</a></li>
+    <li><strong>Response target:</strong> two business days, best-effort (solo developer).</li>
+    <li><strong>Hours:</strong> Australian business hours (AEDT / AEST).</li>
+    <li><strong>Critical issues:</strong> include &ldquo;URGENT&rdquo; in the subject line.</li>
+  </ul>
+
+  <p>
+    For methodology questions, the in-app Methodology tab is the authoritative reference. For
+    privacy or compliance enquiries, see <a class="inline-link" href="privacy.html">the Privacy
+    Policy</a>. For licensing questions, see <a class="inline-link" href="terms.html">the Terms
+    of Service</a>.
+  </p>
+</section>
+
+</article>
+
+</div>
+
+<footer>
+  <div class="inner">
+    <span>Ayman Idris <span class="dot">&middot;</span> ABN 59 540 661 752 <span class="dot">&middot;</span> <a href="mailto:idrisayman88@gmail.com">idrisayman88@gmail.com</a></span>
+    <span>
+      <a href="about.html">Product</a>
+      <span class="dot">&middot;</span>
+      <a href="research.html">Research</a>
+      <span class="dot">&middot;</span>
+      <a href="privacy.html">Privacy</a>
+      <span class="dot">&middot;</span>
+      <a href="terms.html">Terms</a>
+    </span>
+  </div>
+</footer>
+
+</body>
+</html>
