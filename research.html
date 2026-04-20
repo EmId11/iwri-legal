@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Research Behind IWRI — Invisible Work Risk Index</title>
+  <meta name="description" content="How seven workflow signals were distilled from research with hundreds of Scrum teams across banking, telecommunications, and other sectors.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..500&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #F4EFE4;
+      --paper-deep: #EAE4D5;
+      --ink: #1A1E2B;
+      --ink-soft: #3A4050;
+      --ink-mute: rgba(26, 30, 43, 0.62);
+      --rule: rgba(26, 30, 43, 0.14);
+      --rule-strong: rgba(26, 30, 43, 0.30);
+      --accent: #A04A2B;
+      --accent-soft: rgba(160, 74, 43, 0.14);
+      --sage: #6B7661;
+
+      --serif: "Newsreader", "Iowan Old Style", Georgia, serif;
+      --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --mono: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;
+
+      --col: min(72rem, 100% - 2.5rem);
+      --col-narrow: min(42rem, 100% - 2.5rem);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+
+    html, body { margin: 0; padding: 0; }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.65;
+      font-weight: 400;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* Paper grain — a subtle SVG noise layer */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.42;
+      mix-blend-mode: multiply;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.10  0 0 0 0 0.12  0 0 0 0 0.17  0 0 0 0.08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    }
+
+    main, header, footer { position: relative; z-index: 2; }
+
+    .col { width: var(--col); margin-inline: auto; }
+    .col-narrow { width: var(--col-narrow); margin-inline: auto; }
+
+    /* ------------------------------------------------------------------
+       Typography
+       ------------------------------------------------------------------ */
+
+    .kicker {
+      font-family: var(--mono);
+      font-weight: 500;
+      font-size: 11.5px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+    }
+
+    .kicker--accent { color: var(--accent); }
+
+    .section-tag {
+      font-family: var(--mono);
+      font-weight: 500;
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.6em;
+    }
+
+    .section-tag::before {
+      content: "";
+      width: 1.8rem;
+      height: 1px;
+      background: var(--rule-strong);
+      display: inline-block;
+      transform: translateY(-0.22em);
+    }
+
+    h1, h2, h3 { margin: 0; font-weight: 400; }
+
+    .display {
+      font-family: var(--serif);
+      font-optical-sizing: auto;
+      font-weight: 420;
+      letter-spacing: -0.018em;
+      line-height: 1.02;
+      color: var(--ink);
+    }
+
+    .display em {
+      font-style: italic;
+      font-weight: 380;
+    }
+
+    .hed {
+      font-family: var(--serif);
+      font-optical-sizing: auto;
+      font-weight: 430;
+      letter-spacing: -0.012em;
+      line-height: 1.08;
+    }
+
+    .deck {
+      font-family: var(--serif);
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.4;
+      color: var(--ink-soft);
+      letter-spacing: -0.005em;
+    }
+
+    p { margin: 0 0 1em; }
+    p.lede { font-size: 1.16rem; line-height: 1.62; color: var(--ink-soft); }
+    p.lede::first-line { color: var(--ink); }
+
+    a {
+      color: var(--ink);
+      text-decoration: underline;
+      text-decoration-color: var(--rule-strong);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.22em;
+      transition: color 0.15s, text-decoration-color 0.15s;
+    }
+    a:hover { color: var(--accent); text-decoration-color: var(--accent); }
+
+    /* ------------------------------------------------------------------
+       Masthead
+       ------------------------------------------------------------------ */
+
+    header.masthead {
+      padding: clamp(1.6rem, 3vw, 2.2rem) 0 clamp(4rem, 9vw, 7rem);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .masthead-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 1.1rem;
+      border-bottom: 1px solid var(--rule);
+      margin-bottom: clamp(3.5rem, 8vw, 6rem);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+    }
+    .masthead-bar .mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--ink);
+    }
+    .masthead-bar .mark svg { display: block; }
+
+    .masthead-kicker {
+      margin-bottom: 1.4rem;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.9em;
+    }
+
+    .masthead-kicker .plate {
+      display: inline-block;
+      width: 0.55rem;
+      height: 0.55rem;
+      background: var(--accent);
+      transform: translateY(-0.05em);
+    }
+
+    h1.display {
+      font-size: clamp(2.6rem, 7.2vw, 5.6rem);
+      max-width: 20ch;
+      margin: 0 0 clamp(1.5rem, 3vw, 2.4rem);
+    }
+
+    h1.display .accent-underline {
+      position: relative;
+      white-space: nowrap;
+    }
+
+    h1.display .accent-underline::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -0.02em;
+      height: 0.08em;
+      background: var(--accent);
+      transform-origin: left;
+      transform: scaleX(0);
+      animation: underline-grow 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.9s forwards;
+    }
+
+    .deck-block {
+      max-width: 42rem;
+      font-size: clamp(1.15rem, 1.6vw, 1.4rem);
+      margin-bottom: clamp(2.2rem, 5vw, 3.5rem);
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2.2rem 3rem;
+      padding-top: 1.4rem;
+      border-top: 1px solid var(--rule);
+      font-family: var(--mono);
+      font-size: 11.5px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+    }
+    .meta-row dt {
+      color: var(--ink);
+      font-weight: 500;
+      margin-bottom: 0.35em;
+      font-size: 10.5px;
+    }
+    .meta-row dd {
+      margin: 0;
+      font-family: var(--sans);
+      font-size: 13px;
+      text-transform: none;
+      letter-spacing: 0;
+      color: var(--ink-soft);
+    }
+
+    /* ------------------------------------------------------------------
+       Sections
+       ------------------------------------------------------------------ */
+
+    section {
+      padding: clamp(4.5rem, 9vw, 7.5rem) 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    section:last-of-type { border-bottom: 0; }
+
+    .section-head {
+      margin-bottom: clamp(2.2rem, 4vw, 3.4rem);
+    }
+    .section-head .section-tag { margin-bottom: 1rem; }
+    .section-head h2 {
+      font-size: clamp(2rem, 4.6vw, 3.4rem);
+      max-width: 22ch;
+      color: var(--ink);
+    }
+
+    /* §01 Methodology */
+    .prose {
+      max-width: 38rem;
+      font-size: 1.08rem;
+      line-height: 1.7;
+      color: var(--ink-soft);
+    }
+    .prose p + p { margin-top: 1.2em; }
+    .prose strong { color: var(--ink); font-weight: 500; }
+
+    .pullout {
+      margin: clamp(2.5rem, 5vw, 3.8rem) 0;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: clamp(1.2rem, 2.5vw, 2rem);
+      padding: clamp(1.6rem, 3vw, 2.3rem) 0;
+      border-top: 1px solid var(--rule-strong);
+      border-bottom: 1px solid var(--rule-strong);
+    }
+
+    @media (min-width: 800px) {
+      .pullout { grid-template-columns: 12rem 1fr; }
+    }
+
+    .pullout .label {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+      padding-top: 0.25rem;
+    }
+
+    .pullout .quote {
+      font-family: var(--serif);
+      font-style: italic;
+      font-weight: 320;
+      font-size: clamp(1.45rem, 2.6vw, 2rem);
+      line-height: 1.32;
+      color: var(--ink);
+      letter-spacing: -0.008em;
+    }
+
+    /* ------------------------------------------------------------------
+       §02 Funnel
+       ------------------------------------------------------------------ */
+
+    .funnel {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.2rem;
+      margin: clamp(2rem, 4vw, 3rem) 0 1.2rem;
+    }
+
+    @media (min-width: 860px) {
+      .funnel {
+        grid-template-columns: 1fr auto 1fr auto 1fr;
+        align-items: stretch;
+        gap: 0;
+      }
+    }
+
+    .funnel-stage {
+      background: var(--paper-deep);
+      border: 1px solid var(--rule);
+      padding: clamp(1.6rem, 2.5vw, 2.2rem) clamp(1.4rem, 2.3vw, 2rem);
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      position: relative;
+    }
+
+    .funnel-stage.is-final {
+      background: #1A1E2B;
+      color: var(--paper);
+      border-color: var(--ink);
+    }
+
+    .funnel-stat {
+      font-family: var(--serif);
+      font-weight: 420;
+      font-size: clamp(3rem, 5.5vw, 4.8rem);
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+    .funnel-stage.is-final .funnel-stat { color: var(--paper); }
+    .funnel-stage.is-final .funnel-stat .accent-dot {
+      color: var(--accent);
+    }
+
+    .funnel-label {
+      font-family: var(--sans);
+      font-size: 0.95rem;
+      color: var(--ink-mute);
+      line-height: 1.45;
+      max-width: 18ch;
+    }
+    .funnel-stage.is-final .funnel-label { color: rgba(244, 239, 228, 0.72); }
+
+    .funnel-tag {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+      margin-bottom: auto;
+    }
+    .funnel-stage.is-final .funnel-tag { color: var(--accent); }
+
+    .funnel-arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 clamp(0.5rem, 1.5vw, 1.2rem);
+      min-width: 8rem;
+      gap: 0.4rem;
+    }
+
+    .funnel-arrow .label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .funnel-arrow svg { color: var(--rule-strong); }
+
+    @media (max-width: 859px) {
+      .funnel-arrow {
+        flex-direction: row;
+        min-width: 0;
+        justify-content: flex-start;
+        padding-left: 1.2rem;
+      }
+      .funnel-arrow svg { transform: rotate(90deg); width: 18px; }
+    }
+
+    .funnel-caption {
+      font-family: var(--serif);
+      font-style: italic;
+      font-weight: 300;
+      font-size: 0.98rem;
+      color: var(--ink-mute);
+      margin-top: 1.4rem;
+      text-align: center;
+    }
+
+    /* ------------------------------------------------------------------
+       §03 Indicators
+       ------------------------------------------------------------------ */
+
+    .indicator-intro {
+      max-width: 40rem;
+      font-size: 1.06rem;
+      line-height: 1.68;
+      color: var(--ink-soft);
+      margin-bottom: clamp(2.4rem, 4.5vw, 3.4rem);
+    }
+
+    .indicator-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+      border-top: 1px solid var(--rule-strong);
+    }
+
+    @media (min-width: 760px) {
+      .indicator-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .indicator {
+      border-bottom: 1px solid var(--rule);
+      padding: clamp(1.5rem, 2.5vw, 2.1rem) 0;
+      display: grid;
+      grid-template-columns: 3.2rem 1fr;
+      gap: clamp(0.9rem, 1.8vw, 1.4rem);
+      align-items: start;
+      position: relative;
+    }
+
+    @media (min-width: 760px) {
+      .indicator { padding-inline: clamp(1.2rem, 2.3vw, 2rem); }
+      .indicator:nth-child(odd) { border-right: 1px solid var(--rule); }
+    }
+
+    .indicator-num {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      color: var(--ink-mute);
+      padding-top: 0.35rem;
+    }
+
+    .indicator-body h3 {
+      font-family: var(--serif);
+      font-size: clamp(1.3rem, 1.9vw, 1.55rem);
+      font-weight: 440;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      margin-bottom: 0.55rem;
+      color: var(--ink);
+    }
+
+    .indicator-body p {
+      font-size: 0.97rem;
+      line-height: 1.6;
+      color: var(--ink-soft);
+      margin: 0 0 1.2rem;
+      max-width: 38ch;
+    }
+
+    .reliability {
+      display: flex;
+      align-items: baseline;
+      gap: 0.9rem;
+    }
+
+    .reliability .meter {
+      flex: 1;
+      max-width: 14rem;
+      height: 1px;
+      background: var(--rule-strong);
+      position: relative;
+    }
+    .reliability .meter::after {
+      content: "";
+      position: absolute;
+      inset: 0 100% 0 0;
+      background: var(--accent);
+      height: 2px;
+      top: -0.5px;
+      transition: right 1.3s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .reliability.is-in .meter::after { right: calc(100% - var(--fill, 0%)); }
+
+    .reliability .pct {
+      font-family: var(--mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 0.92rem;
+      color: var(--ink);
+      letter-spacing: 0.04em;
+      min-width: 3.5em;
+    }
+
+    .reliability .pct-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+    }
+
+    /* ------------------------------------------------------------------
+       §04 Principles
+       ------------------------------------------------------------------ */
+
+    .principles {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+      border-top: 1px solid var(--rule-strong);
+      border-bottom: 1px solid var(--rule-strong);
+    }
+
+    @media (min-width: 860px) {
+      .principles { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .principle {
+      padding: clamp(1.8rem, 3vw, 2.4rem) clamp(1.4rem, 2.5vw, 2rem);
+      border-bottom: 1px solid var(--rule);
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+    }
+
+    @media (min-width: 860px) {
+      .principle { border-bottom: 0; }
+      .principle + .principle { border-left: 1px solid var(--rule); }
+    }
+
+    .principle:last-child { border-bottom: 0; }
+
+    .principle .idx {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.22em;
+      color: var(--accent);
+    }
+
+    .principle h3 {
+      font-family: var(--serif);
+      font-weight: 430;
+      font-size: clamp(1.4rem, 2.2vw, 1.75rem);
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      color: var(--ink);
+    }
+
+    .principle p {
+      font-size: 0.97rem;
+      line-height: 1.6;
+      color: var(--ink-soft);
+      margin: 0;
+      max-width: 32ch;
+    }
+
+    /* ------------------------------------------------------------------
+       Closing note
+       ------------------------------------------------------------------ */
+
+    .closing {
+      padding: clamp(3rem, 6vw, 4.5rem) 0 clamp(3.5rem, 7vw, 5rem);
+    }
+
+    .closing-note {
+      max-width: 38rem;
+      margin: 0 auto;
+      text-align: center;
+      font-family: var(--serif);
+      font-style: italic;
+      font-weight: 300;
+      font-size: clamp(1.1rem, 1.7vw, 1.35rem);
+      line-height: 1.55;
+      color: var(--ink-soft);
+      letter-spacing: -0.004em;
+    }
+
+    /* ------------------------------------------------------------------
+       Footer
+       ------------------------------------------------------------------ */
+
+    footer {
+      border-top: 1px solid var(--rule);
+      padding: clamp(2rem, 4vw, 3rem) 0 clamp(2.2rem, 4vw, 3rem);
+      font-family: var(--mono);
+      font-size: 11.5px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+    }
+
+    .footer-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1.4rem 2rem;
+    }
+
+    .footer-grid a {
+      color: var(--ink-mute);
+      text-decoration: none;
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 1px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .footer-grid a:hover { color: var(--accent); border-color: var(--accent); }
+
+    .footer-grid .dot {
+      display: inline-block;
+      padding: 0 0.5rem;
+      color: var(--rule-strong);
+    }
+
+    /* ------------------------------------------------------------------
+       Reveal animations
+       ------------------------------------------------------------------ */
+
+    @keyframes underline-grow {
+      to { transform: scaleX(1); }
+    }
+
+    @keyframes lift-in {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .masthead-bar,
+    .masthead-kicker,
+    h1.display,
+    .deck-block,
+    .meta-row {
+      opacity: 0;
+      animation: lift-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    .masthead-bar { animation-delay: 0.05s; }
+    .masthead-kicker { animation-delay: 0.2s; }
+    h1.display { animation-delay: 0.35s; }
+    .deck-block { animation-delay: 0.6s; }
+    .meta-row { animation-delay: 0.8s; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+      .masthead-bar, .masthead-kicker, h1.display, .deck-block, .meta-row { opacity: 1; }
+      h1.display .accent-underline::after { transform: scaleX(1); }
+      .reliability .meter::after { right: calc(100% - var(--fill, 0%)); }
+    }
+
+    /* Selection */
+    ::selection { background: var(--accent); color: var(--paper); }
+  </style>
+</head>
+<body>
+
+<!-- ========================================================================
+     MASTHEAD
+     ======================================================================== -->
+<header class="masthead">
+  <div class="col">
+    <div class="masthead-bar">
+      <span class="mark">
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+          <rect x="1" y="1" width="4" height="4" fill="currentColor"/>
+          <rect x="7" y="1" width="4" height="4" fill="currentColor" opacity="0.55"/>
+          <rect x="13" y="1" width="4" height="4" fill="currentColor" opacity="0.25"/>
+          <rect x="1" y="7" width="4" height="4" fill="currentColor" opacity="0.55"/>
+          <rect x="7" y="7" width="4" height="4" fill="#A04A2B"/>
+          <rect x="13" y="7" width="4" height="4" fill="currentColor" opacity="0.55"/>
+          <rect x="1" y="13" width="4" height="4" fill="currentColor" opacity="0.25"/>
+          <rect x="7" y="13" width="4" height="4" fill="currentColor" opacity="0.55"/>
+          <rect x="13" y="13" width="4" height="4" fill="currentColor"/>
+        </svg>
+        IWRI Research Note
+      </span>
+      <span>Edition 01 &middot; 2026</span>
+    </div>
+
+    <div class="masthead-kicker kicker kicker--accent">
+      <span class="plate" aria-hidden="true"></span>
+      <span>On the methodology behind the Invisible Work Risk Index</span>
+    </div>
+
+    <h1 class="display">
+      Seven signals, distilled from <span class="accent-underline">hundreds of Scrum teams</span>.
+    </h1>
+
+    <p class="deck deck-block">
+      How IWRI&rsquo;s indicators were chosen, tested, kept, or discarded &mdash;
+      and why a screening tool is not, and should not be, a performance scorecard.
+    </p>
+
+    <dl class="meta-row">
+      <div>
+        <dt>Author</dt>
+        <dd>Ayman Idris</dd>
+      </div>
+      <div>
+        <dt>Jurisdiction</dt>
+        <dd>Sydney, Australia</dd>
+      </div>
+      <div>
+        <dt>Reading time</dt>
+        <dd>Six minutes</dd>
+      </div>
+      <div>
+        <dt>Last revised</dt>
+        <dd>April 2026</dd>
+      </div>
+    </dl>
+  </div>
+</header>
+
+<main>
+
+<!-- ========================================================================
+     §01 METHODOLOGY
+     ======================================================================== -->
+<section id="methodology">
+  <div class="col-narrow">
+    <div class="section-head">
+      <div class="section-tag">&sect;01 &mdash; Method</div>
+      <h2 class="hed">Starting from the data teams already keep.</h2>
+    </div>
+
+    <div class="prose">
+      <p class="lede">
+        Every software team does work that never shows up in Jira: mentoring juniors,
+        responding to incidents, fixing things before they become tickets, answering questions in
+        Slack. This invisible work drains capacity, skews estimates, and burns people out.
+        The question IWRI was built to answer is narrow and specific: can you see the footprint
+        of that work in the data teams already have?
+      </p>
+
+      <p>
+        The research behind IWRI was conducted across <strong>hundreds of Scrum teams</strong> in
+        banking, telecommunications, and other sectors. Each participating team rated its own
+        volume of invisible work through a structured survey. Team leads were then interviewed
+        to map, in their own words, how that work manifested: the interrupt-driven weeks, the
+        work absorbed before it reached the backlog, the tickets that never quite captured what
+        the team had actually done.
+      </p>
+
+      <p>
+        From there, <strong>over twenty candidate indicators</strong> were tested against the
+        self-reported burden. Some tracked sprint-delivery patterns. Some tracked ticket
+        hygiene. Some tracked day-to-day activity rhythms. Any indicator that did not show a
+        consistent, repeatable relationship with self-reported invisible work was removed.
+        What survived is the set of seven.
+      </p>
+    </div>
+
+    <aside class="pullout">
+      <div class="label">The remit</div>
+      <div class="quote">
+        &ldquo;Not a new metric. A principled way of asking whether the data we already keep
+        tells us where to start a conversation.&rdquo;
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ========================================================================
+     §02 FUNNEL
+     ======================================================================== -->
+<section id="funnel">
+  <div class="col">
+    <div class="section-head">
+      <div class="section-tag">&sect;02 &mdash; From candidates to kept</div>
+      <h2 class="hed">Only patterns that held up twice.</h2>
+    </div>
+
+    <div class="funnel">
+      <div class="funnel-stage">
+        <div class="funnel-tag">Stage one</div>
+        <div class="funnel-stat">20<sup style="font-size:0.5em; vertical-align: top; font-weight: 430;">+</sup></div>
+        <div class="funnel-label">candidate indicators across sprint delivery, tracking behaviour, and activity rhythms</div>
+      </div>
+
+      <div class="funnel-arrow" aria-hidden="true">
+        <span class="label">Surveys<br>+ interviews</span>
+        <svg width="44" height="10" viewBox="0 0 44 10">
+          <line x1="0" y1="5" x2="34" y2="5" stroke="currentColor" stroke-width="1"/>
+          <polygon points="34,1 44,5 34,9" fill="currentColor"/>
+        </svg>
+      </div>
+
+      <div class="funnel-stage">
+        <div class="funnel-tag">Stage two</div>
+        <div class="funnel-stat">Hundreds</div>
+        <div class="funnel-label">of Scrum teams across banking, telecommunications, and other sectors</div>
+      </div>
+
+      <div class="funnel-arrow" aria-hidden="true">
+        <span class="label">Only consistent<br>patterns kept</span>
+        <svg width="44" height="10" viewBox="0 0 44 10">
+          <line x1="0" y1="5" x2="34" y2="5" stroke="currentColor" stroke-width="1"/>
+          <polygon points="34,1 44,5 34,9" fill="currentColor"/>
+        </svg>
+      </div>
+
+      <div class="funnel-stage is-final">
+        <div class="funnel-tag">Stage three</div>
+        <div class="funnel-stat">07<span class="accent-dot">.</span></div>
+        <div class="funnel-label">validated indicators, each with a documented split-half reliability score between 53 and 86 percent</div>
+      </div>
+    </div>
+
+    <div class="funnel-caption">
+      Indicators that did not show a consistent, repeatable pattern were discarded.
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================================
+     §03 THE SEVEN
+     ======================================================================== -->
+<section id="indicators">
+  <div class="col">
+    <div class="section-head">
+      <div class="section-tag">&sect;03 &mdash; The seven that held up</div>
+      <h2 class="hed">Each captures a different face of invisible work.</h2>
+    </div>
+
+    <p class="indicator-intro">
+      Reliability below is measured as split-half consistency: how stable each signal remains
+      when two independent halves of the underlying data are compared. A higher figure means
+      the pattern is less likely to be the product of a single noisy sprint, and more likely to
+      reflect something persistent about the team.
+    </p>
+
+    <div class="indicator-grid" id="indicator-grid">
+      <article class="indicator">
+        <div class="indicator-num">01</div>
+        <div class="indicator-body">
+          <h3>Velocity Stability</h3>
+          <p>When invisible work absorbs capacity, the gap between what a team plans and what they deliver becomes erratic.</p>
+          <div class="reliability" data-fill="55">
+            <span class="pct-label">Consistency</span>
+            <span class="meter" aria-hidden="true"></span>
+            <span class="pct">55&thinsp;%</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="indicator">
+        <div class="indicator-num">02</div>
+        <div class="indicator-body">
+          <h3>Commitment Gaps</h3>
+          <p>Teams carrying invisible work consistently deliver less than they commit to, because their real workload is larger than what is tracked.</p>
+          <div class="reliability" data-fill="74">
+            <span class="pct-label">Consistency</span>
+            <span class="meter" aria-hidden="true"></span>
+            <span class="pct">74&thinsp;%</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="indicator">
+        <div class="indicator-num">03</div>
+        <div class="indicator-body">
+          <h3>Work Left Undone</h3>
+          <p>Planned tickets that are never even started suggest untracked work displaced the planned work during the sprint.</p>
+          <div class="reliability" data-fill="69">
+            <span class="pct-label">Consistency</span>
+            <span class="meter" aria-hidden="true"></span>
+            <span class="pct">69&thinsp;%</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="indicator">
+        <div class="indicator-num">04</div>
+        <div class="indicator-body">
+          <h3>Tracking per Person</h3>
+          <p>Teams tracking fewer items per developer than peers may have significant work happening outside Jira entirely.</p>
+          <div class="reliability" data-fill="78">
+            <span class="pct-label">Consistency</span>
+            <span class="meter" aria-hidden="true"></span>
+            <span class="pct">78&thinsp;%</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="indicator">
+        <div class="indicator-num">05</div>
+        <div class="indicator-body">
+          <h3>Daily Jira Activity</h3>
+          <p>Frequent days with zero Jira activity can indicate the team is busy, just not with anything that shows up in the tool.</p>
+          <div class="reliability" data-fill="81">
+            <span class="pct-label">Consistency</span>
+            <span class="meter" aria-hidden="true"></span>
+            <span class="pct">81&thinsp;%</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="indicator">
+        <div class="indicator-num">06</div>
+        <div class="indicator-body">
+          <h3>Ticket Descriptions</h3>
+          <p>Empty ticket descriptions often signal rushed ticket creation or work that was communicated verbally and never documented.</p>
+          <div class="reliability" data-fill="86">
+            <span class="pct-label">Consistency</span>
+            <span class="meter" aria-hidden="true"></span>
+            <span class="pct">86&thinsp;%</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="indicator">
+        <div class="indicator-num">07</div>
+        <div class="indicator-body">
+          <h3>Mid-Sprint Changes</h3>
+          <p>Unpredictable volumes of unplanned work added mid-sprint suggest recurring interruptions from sources not captured in planning.</p>
+          <div class="reliability" data-fill="53">
+            <span class="pct-label">Consistency</span>
+            <span class="meter" aria-hidden="true"></span>
+            <span class="pct">53&thinsp;%</span>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================================
+     §04 PRINCIPLES
+     ======================================================================== -->
+<section id="principles">
+  <div class="col">
+    <div class="section-head">
+      <div class="section-tag">&sect;04 &mdash; Principles</div>
+      <h2 class="hed">Three constraints we accept on purpose.</h2>
+    </div>
+
+    <div class="principles">
+      <div class="principle">
+        <div class="idx">01</div>
+        <h3>Screening, not scorecard.</h3>
+        <p>Flags indicate patterns worth investigating. They do not confirm a problem is present, and they are not a substitute for judgement.</p>
+      </div>
+      <div class="principle">
+        <div class="idx">02</div>
+        <h3>Relative, not absolute.</h3>
+        <p>Scores are meaningful within your scored population. Cross-organisation comparison is not supported, by design.</p>
+      </div>
+      <div class="principle">
+        <div class="idx">03</div>
+        <h3>Conversation starter, not verdict.</h3>
+        <p>The app points you at where to start a conversation with a team. What happens next is professional judgement, not algorithm.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================================
+     CLOSING
+     ======================================================================== -->
+<section class="closing">
+  <div class="col-narrow">
+    <p class="closing-note">
+      Every formula, every threshold, and every known limitation of IWRI is documented inside the
+      app itself, in plain language, with no statistical jargon outside of the Methodology tab.
+      The app is read-only. No data leaves your Jira Cloud tenancy. Australian English throughout.
+    </p>
+  </div>
+</section>
+
+</main>
+
+<!-- ========================================================================
+     FOOTER
+     ======================================================================== -->
+<footer>
+  <div class="col">
+    <div class="footer-grid">
+      <span>Ayman Idris <span class="dot">&middot;</span> ABN 59 540 661 752 <span class="dot">&middot;</span> <a href="mailto:idrisayman88@gmail.com">idrisayman88@gmail.com</a></span>
+      <span>
+        <a href="privacy.html">Privacy</a>
+        <span class="dot">&middot;</span>
+        <a href="terms.html">Terms</a>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Animate reliability bars when they enter the viewport.
+  (function () {
+    var targets = document.querySelectorAll('.reliability[data-fill]');
+    if (!('IntersectionObserver' in window)) {
+      targets.forEach(function (el) {
+        el.style.setProperty('--fill', el.dataset.fill + '%');
+        el.classList.add('is-in');
+      });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        var el = entry.target;
+        el.style.setProperty('--fill', el.dataset.fill + '%');
+        el.classList.add('is-in');
+        io.unobserve(el);
+      });
+    }, { threshold: 0.35, rootMargin: '0px 0px -8% 0px' });
+    targets.forEach(function (el) { io.observe(el); });
+  })();
+</script>
+
+</body>
+</html>
