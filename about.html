@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invisible Work Risk Index &mdash; See how closely your Scrum teams&rsquo; Jira data reflects the work they&rsquo;re actually doing</title>
+  <meta name="description" content="IWRI is a Forge app for Jira that scores every Scrum team on how closely their sprint data reflects the work they're actually doing. Research-grounded, read-only, nothing leaves your Jira tenancy.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..500&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #F4EFE4;
+      --paper-deep: #EAE4D5;
+      --paper-card: #FBF7EE;
+      --ink: #1A1E2B;
+      --ink-deep: #0F121B;
+      --ink-soft: #3A4050;
+      --ink-mute: rgba(26, 30, 43, 0.62);
+      --rule: rgba(26, 30, 43, 0.14);
+      --rule-strong: rgba(26, 30, 43, 0.30);
+      --accent: #A04A2B;
+      --accent-deep: #8A3E23;
+      --accent-soft: rgba(160, 74, 43, 0.14);
+      --sage: #6B7661;
+      --sage-soft: rgba(107, 118, 97, 0.18);
+      --healthy: #4F6E54;
+      --low: #7A8A4A;
+      --moderate: #B48635;
+      --elevated: #A15F2C;
+      --high: #8C3B27;
+
+      --serif: "Newsreader", "Iowan Old Style", Georgia, serif;
+      --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --mono: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;
+
+      --col: min(76rem, 100% - 2.5rem);
+      --col-narrow: min(44rem, 100% - 2.5rem);
+      --col-wide: min(90rem, 100% - 2.5rem);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      scroll-behavior: smooth;
+    }
+
+    html, body { margin: 0; padding: 0; }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.65;
+      font-weight: 400;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.42;
+      mix-blend-mode: multiply;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.10  0 0 0 0 0.12  0 0 0 0 0.17  0 0 0 0.08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    }
+
+    main, header, footer, nav, section { position: relative; z-index: 2; }
+
+    .col { width: var(--col); margin-inline: auto; }
+    .col-narrow { width: var(--col-narrow); margin-inline: auto; }
+    .col-wide { width: var(--col-wide); margin-inline: auto; }
+
+    /* ------------------------------------------------------------------
+       Typography system
+       ------------------------------------------------------------------ */
+
+    h1, h2, h3, h4 { margin: 0; font-weight: 400; }
+
+    .kicker {
+      font-family: var(--mono);
+      font-weight: 500;
+      font-size: 11.5px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+    }
+
+    .section-tag {
+      font-family: var(--mono);
+      font-weight: 500;
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.6em;
+      margin-bottom: 1rem;
+    }
+    .section-tag::before {
+      content: "";
+      width: 1.8rem;
+      height: 1px;
+      background: var(--rule-strong);
+      display: inline-block;
+      transform: translateY(-0.22em);
+    }
+
+    .display {
+      font-family: var(--serif);
+      font-optical-sizing: auto;
+      font-weight: 420;
+      letter-spacing: -0.018em;
+      line-height: 1.02;
+      color: var(--ink);
+    }
+    .display em { font-style: italic; font-weight: 380; }
+
+    .hed {
+      font-family: var(--serif);
+      font-optical-sizing: auto;
+      font-weight: 430;
+      letter-spacing: -0.012em;
+      line-height: 1.08;
+    }
+
+    .deck {
+      font-family: var(--serif);
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.4;
+      color: var(--ink-soft);
+      letter-spacing: -0.005em;
+    }
+
+    p { margin: 0 0 1em; }
+    p.lede { font-size: 1.16rem; line-height: 1.62; color: var(--ink-soft); }
+
+    a { color: inherit; }
+
+    /* ------------------------------------------------------------------
+       Top navigation
+       ------------------------------------------------------------------ */
+
+    nav.top {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(244, 239, 228, 0.82);
+      backdrop-filter: saturate(1.2) blur(12px);
+      -webkit-backdrop-filter: saturate(1.2) blur(12px);
+      border-bottom: 1px solid var(--rule);
+    }
+    nav.top .inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.95rem 0;
+    }
+    nav.top .mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    nav.top .mark svg { display: block; }
+    nav.top ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      gap: clamp(0.7rem, 2vw, 1.8rem);
+      align-items: center;
+    }
+    nav.top ul a {
+      font-family: var(--sans);
+      font-size: 14px;
+      color: var(--ink-mute);
+      text-decoration: none;
+      letter-spacing: 0;
+      transition: color 0.15s;
+    }
+    nav.top ul a:hover { color: var(--ink); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1rem;
+      background: var(--ink);
+      color: var(--paper);
+      text-decoration: none;
+      font-family: var(--sans);
+      font-size: 13.5px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      border: 1px solid var(--ink);
+      transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.15s;
+      cursor: pointer;
+    }
+    .btn:hover { background: var(--accent); border-color: var(--accent); }
+
+    .btn.btn--lg {
+      padding: 0.95rem 1.5rem;
+      font-size: 14.5px;
+    }
+
+    .btn.btn--ghost {
+      background: transparent;
+      color: var(--ink);
+    }
+    .btn.btn--ghost:hover { background: var(--ink); color: var(--paper); }
+
+    .btn svg { transition: transform 0.2s; }
+    .btn:hover svg { transform: translateX(3px); }
+
+    @media (max-width: 640px) {
+      nav.top ul li.hide-sm { display: none; }
+    }
+
+    /* ------------------------------------------------------------------
+       Hero
+       ------------------------------------------------------------------ */
+
+    header.hero {
+      padding: clamp(3rem, 7vw, 6rem) 0 clamp(4rem, 9vw, 7rem);
+      border-bottom: 1px solid var(--rule);
+      position: relative;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: clamp(3rem, 5vw, 4rem);
+      align-items: end;
+    }
+    @media (min-width: 1000px) {
+      .hero-grid { grid-template-columns: 1.15fr 1fr; gap: clamp(3rem, 5vw, 5rem); }
+    }
+
+    .hero-edition {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.9em;
+      margin-bottom: 2.2rem;
+    }
+    .hero-edition .plate {
+      display: inline-block;
+      width: 0.55rem;
+      height: 0.55rem;
+      background: var(--accent);
+      transform: translateY(-0.05em);
+    }
+
+    h1.hero-title {
+      font-size: clamp(2.4rem, 6.6vw, 5.4rem);
+      max-width: 18ch;
+      margin-bottom: clamp(1.4rem, 2.8vw, 2rem);
+    }
+    h1.hero-title .accent-underline {
+      position: relative;
+      white-space: nowrap;
+    }
+    h1.hero-title .accent-underline::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; bottom: -0.02em;
+      height: 0.07em;
+      background: var(--accent);
+      transform-origin: left;
+      transform: scaleX(0);
+      animation: underline-grow 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.9s forwards;
+    }
+
+    .hero-deck {
+      font-size: clamp(1.15rem, 1.7vw, 1.4rem);
+      max-width: 42rem;
+      margin-bottom: clamp(2rem, 3.5vw, 2.8rem);
+    }
+
+    .hero-cta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      align-items: center;
+      margin-bottom: clamp(2rem, 4vw, 2.8rem);
+    }
+
+    .hero-trust {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.4rem 2rem;
+      padding-top: 1.4rem;
+      border-top: 1px solid var(--rule);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+    }
+    .hero-trust span { display: inline-flex; align-items: center; gap: 0.5rem; }
+    .hero-trust svg { color: var(--accent); }
+
+    /* Hero visual — a stylised product tile */
+    .hero-visual {
+      position: relative;
+      aspect-ratio: 1 / 1.12;
+      max-width: 34rem;
+      margin-left: auto;
+      margin-right: 0;
+    }
+
+    .hero-visual .panel {
+      position: absolute;
+      background: var(--paper-card);
+      border: 1px solid var(--rule-strong);
+      box-shadow: 0 30px 60px -25px rgba(26, 30, 43, 0.22), 0 2px 6px rgba(26, 30, 43, 0.04);
+      padding: 1.2rem 1.3rem;
+    }
+
+    .hero-visual .panel--main {
+      inset: 0 0 14% 14%;
+    }
+
+    .hero-visual .panel--back {
+      inset: 12% 18% 22% 0;
+      background: var(--paper-deep);
+      opacity: 0.75;
+      transform: rotate(-1.8deg);
+      z-index: -1;
+    }
+
+    .hv-hed {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+      margin-bottom: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .hv-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+
+    .hv-cell {
+      border: 1px solid var(--rule);
+      background: var(--paper);
+      padding: 0.55rem 0.6rem 0.65rem;
+      font-family: var(--sans);
+      position: relative;
+      overflow: hidden;
+    }
+    .hv-cell .band {
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    }
+    .hv-cell.t-healthy .band { background: var(--healthy); }
+    .hv-cell.t-low .band { background: var(--low); }
+    .hv-cell.t-moderate .band { background: var(--moderate); }
+    .hv-cell.t-elevated .band { background: var(--elevated); }
+    .hv-cell.t-high .band { background: var(--high); }
+    .hv-cell.t-mute .band { background: var(--rule-strong); }
+
+    .hv-cell .pj {
+      font-family: var(--mono);
+      font-size: 9.5px;
+      letter-spacing: 0.14em;
+      color: var(--ink-mute);
+      text-transform: uppercase;
+    }
+    .hv-cell .name {
+      font-family: var(--serif);
+      font-size: 0.82rem;
+      font-weight: 430;
+      letter-spacing: -0.004em;
+      margin-top: 0.12rem;
+      line-height: 1.15;
+    }
+    .hv-cell .lvl {
+      font-family: var(--mono);
+      font-size: 9.5px;
+      letter-spacing: 0.14em;
+      margin-top: 0.55rem;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+    }
+    .hv-cell .dots {
+      display: flex;
+      gap: 3px;
+      margin-top: 0.35rem;
+    }
+    .hv-cell .dots i {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--rule-strong);
+      display: inline-block;
+    }
+    .hv-cell .dots i.on { background: var(--accent); }
+
+    /* ------------------------------------------------------------------
+       Sections, shared
+       ------------------------------------------------------------------ */
+
+    section.s {
+      padding: clamp(4.5rem, 9vw, 7.5rem) 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    section.s:last-of-type { border-bottom: 0; }
+
+    .section-head { margin-bottom: clamp(2.2rem, 4vw, 3.4rem); }
+    .section-head h2 {
+      font-size: clamp(2rem, 4.6vw, 3.4rem);
+      max-width: 22ch;
+      color: var(--ink);
+    }
+
+    /* ------------------------------------------------------------------
+       §01 The problem
+       ------------------------------------------------------------------ */
+
+    .problem-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: clamp(2rem, 4vw, 3.2rem);
+    }
+    @media (min-width: 900px) { .problem-grid { grid-template-columns: 1.2fr 1fr; } }
+
+    .problem-prose {
+      max-width: 38rem;
+      font-size: 1.1rem;
+      line-height: 1.7;
+      color: var(--ink-soft);
+    }
+    .problem-prose strong { color: var(--ink); font-weight: 500; }
+
+    .examples {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      border-top: 1px solid var(--rule-strong);
+    }
+    .example {
+      display: grid;
+      grid-template-columns: 3rem 1fr;
+      gap: 1rem;
+      padding: 1.1rem 0;
+      border-bottom: 1px solid var(--rule);
+      align-items: baseline;
+    }
+    .example .n {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      color: var(--accent);
+      padding-top: 0.25rem;
+    }
+    .example .txt {
+      font-family: var(--serif);
+      font-weight: 420;
+      font-size: 1.08rem;
+      line-height: 1.45;
+      letter-spacing: -0.004em;
+      color: var(--ink);
+    }
+    .example .txt em { color: var(--ink-mute); font-style: italic; font-weight: 320; font-size: 0.92em; display: block; margin-top: 0.2em; }
+
+    /* ------------------------------------------------------------------
+       §02 Product tour
+       ------------------------------------------------------------------ */
+
+    .tour {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(4rem, 8vw, 7rem);
+    }
+
+    .tour-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: clamp(2rem, 4vw, 3.5rem);
+      align-items: center;
+    }
+    @media (min-width: 900px) {
+      .tour-row { grid-template-columns: 1fr 1.1fr; }
+      .tour-row.reverse > *:first-child { order: 2; }
+    }
+
+    .tour-copy .step {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 0.8rem;
+    }
+    .tour-copy h3 {
+      font-family: var(--serif);
+      font-weight: 430;
+      font-size: clamp(1.6rem, 2.8vw, 2.2rem);
+      letter-spacing: -0.01em;
+      line-height: 1.12;
+      margin-bottom: 1rem;
+      max-width: 18ch;
+    }
+    .tour-copy p {
+      font-size: 1.02rem;
+      line-height: 1.65;
+      color: var(--ink-soft);
+      max-width: 38ch;
+    }
+
+    .tour-copy ul {
+      list-style: none;
+      padding: 0;
+      margin: 1.4rem 0 0;
+      font-size: 0.97rem;
+    }
+    .tour-copy ul li {
+      display: flex;
+      gap: 0.8rem;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid var(--rule);
+      color: var(--ink-soft);
+    }
+    .tour-copy ul li::before {
+      content: "";
+      width: 14px;
+      height: 1px;
+      background: var(--accent);
+      margin-top: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    /* Mockup panels */
+    .mockup {
+      background: var(--paper-card);
+      border: 1px solid var(--rule-strong);
+      padding: 1.5rem 1.5rem 1.8rem;
+      box-shadow: 0 30px 60px -30px rgba(26, 30, 43, 0.2), 0 2px 6px rgba(26, 30, 43, 0.04);
+      position: relative;
+    }
+    .mockup::before {
+      content: "";
+      position: absolute;
+      top: -0.45rem; left: -0.45rem;
+      right: 0.45rem; bottom: 0.45rem;
+      background: var(--paper-deep);
+      border: 1px solid var(--rule);
+      z-index: -1;
+    }
+    .mockup .bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 0.85rem;
+      border-bottom: 1px solid var(--rule);
+      margin-bottom: 1.2rem;
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+    }
+    .mockup .fig {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--ink-mute);
+      margin-top: 1.2rem;
+      padding-top: 0.8rem;
+      border-top: 1px solid var(--rule);
+      text-transform: uppercase;
+    }
+
+    /* Mockup 1: dashboard grid */
+    .m-dash .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.55rem;
+    }
+    @media (max-width: 500px) {
+      .m-dash .grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* Mockup 2: drill-down */
+    .m-drill .title {
+      font-family: var(--serif);
+      font-size: 1.35rem;
+      line-height: 1.15;
+      font-weight: 430;
+      letter-spacing: -0.008em;
+      margin-bottom: 0.3rem;
+    }
+    .m-drill .sub {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+      margin-bottom: 1rem;
+    }
+    .m-drill .flag {
+      border-left: 3px solid var(--accent);
+      padding: 0.65rem 0.9rem;
+      background: var(--paper);
+      margin-bottom: 0.55rem;
+    }
+    .m-drill .flag .fname {
+      font-family: var(--serif);
+      font-size: 0.98rem;
+      font-weight: 450;
+    }
+    .m-drill .flag .fbody {
+      font-size: 0.82rem;
+      color: var(--ink-soft);
+      line-height: 1.45;
+      margin-top: 0.25rem;
+    }
+    .m-drill .flag.sage { border-left-color: var(--sage); }
+    .m-drill .flag.amb { border-left-color: var(--moderate); }
+
+    /* Mockup 3: methodology */
+    .m-meth .formula {
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      padding: 0.95rem 1rem;
+      background: var(--paper);
+      border: 1px dashed var(--rule-strong);
+      line-height: 1.45;
+      margin: 0.8rem 0 1.1rem;
+    }
+    .m-meth .meta {
+      font-family: var(--serif);
+      font-size: 1.08rem;
+      line-height: 1.4;
+      font-weight: 430;
+      letter-spacing: -0.004em;
+      margin-bottom: 0.8rem;
+    }
+    .m-meth .curve {
+      width: 100%;
+      height: 100px;
+      margin: 0.8rem 0 0.3rem;
+    }
+
+    /* ------------------------------------------------------------------
+       §03 Principles
+       ------------------------------------------------------------------ */
+
+    .principles {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+      border-top: 1px solid var(--rule-strong);
+      border-bottom: 1px solid var(--rule-strong);
+    }
+    @media (min-width: 860px) { .principles { grid-template-columns: repeat(3, 1fr); } }
+
+    .principle {
+      padding: clamp(1.8rem, 3vw, 2.4rem) clamp(1.4rem, 2.5vw, 2rem);
+      border-bottom: 1px solid var(--rule);
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+    @media (min-width: 860px) {
+      .principle { border-bottom: 0; }
+      .principle + .principle { border-left: 1px solid var(--rule); }
+    }
+    .principle:last-child { border-bottom: 0; }
+    .principle .idx {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.22em;
+      color: var(--accent);
+    }
+    .principle h3 {
+      font-family: var(--serif);
+      font-weight: 430;
+      font-size: clamp(1.3rem, 2vw, 1.7rem);
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+    }
+    .principle p {
+      font-size: 0.97rem;
+      line-height: 1.6;
+      color: var(--ink-soft);
+      margin: 0;
+      max-width: 32ch;
+    }
+
+    /* ------------------------------------------------------------------
+       §04 Research (funnel + seven)
+       ------------------------------------------------------------------ */
+
+    .funnel {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.2rem;
+      margin: clamp(2rem, 4vw, 3rem) 0 1.2rem;
+    }
+    @media (min-width: 860px) {
+      .funnel {
+        grid-template-columns: 1fr auto 1fr auto 1fr;
+        align-items: stretch;
+        gap: 0;
+      }
+    }
+
+    .funnel-stage {
+      background: var(--paper-deep);
+      border: 1px solid var(--rule);
+      padding: clamp(1.6rem, 2.5vw, 2.2rem) clamp(1.4rem, 2.3vw, 2rem);
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .funnel-stage.is-final {
+      background: var(--ink-deep);
+      color: var(--paper);
+      border-color: var(--ink);
+    }
+    .funnel-stat {
+      font-family: var(--serif);
+      font-weight: 420;
+      font-size: clamp(3rem, 5.5vw, 4.8rem);
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+    .funnel-stage.is-final .funnel-stat { color: var(--paper); }
+    .funnel-stage.is-final .funnel-stat .accent-dot { color: var(--accent); }
+    .funnel-label {
+      font-size: 0.95rem;
+      color: var(--ink-mute);
+      line-height: 1.45;
+      max-width: 18ch;
+    }
+    .funnel-stage.is-final .funnel-label { color: rgba(244, 239, 228, 0.72); }
+    .funnel-tag {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+      margin-bottom: auto;
+    }
+    .funnel-stage.is-final .funnel-tag { color: var(--accent); }
+    .funnel-arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 clamp(0.5rem, 1.5vw, 1.2rem);
+      min-width: 8rem;
+      gap: 0.4rem;
+    }
+    .funnel-arrow .label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+      text-align: center;
+      line-height: 1.4;
+    }
+    .funnel-arrow svg { color: var(--rule-strong); }
+    @media (max-width: 859px) {
+      .funnel-arrow { flex-direction: row; min-width: 0; justify-content: flex-start; padding-left: 1.2rem; }
+      .funnel-arrow svg { transform: rotate(90deg); width: 18px; }
+    }
+    .funnel-caption {
+      font-family: var(--serif);
+      font-style: italic;
+      font-weight: 300;
+      font-size: 0.98rem;
+      color: var(--ink-mute);
+      margin: 1.4rem 0 clamp(3rem, 5vw, 4rem);
+      text-align: center;
+    }
+
+    .indicator-intro {
+      max-width: 40rem;
+      font-size: 1.04rem;
+      line-height: 1.68;
+      color: var(--ink-soft);
+      margin-bottom: clamp(2.2rem, 4vw, 3rem);
+    }
+
+    .indicator-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+      border-top: 1px solid var(--rule-strong);
+    }
+    @media (min-width: 760px) {
+      .indicator-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .indicator {
+      border-bottom: 1px solid var(--rule);
+      padding: clamp(1.4rem, 2.3vw, 2rem) 0;
+      display: grid;
+      grid-template-columns: 3.2rem 1fr;
+      gap: clamp(0.9rem, 1.8vw, 1.4rem);
+      align-items: start;
+    }
+    @media (min-width: 760px) {
+      .indicator { padding-inline: clamp(1.2rem, 2.3vw, 1.8rem); }
+      .indicator:nth-child(odd) { border-right: 1px solid var(--rule); }
+    }
+    .indicator-num {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      color: var(--ink-mute);
+      padding-top: 0.35rem;
+    }
+    .indicator-body h3 {
+      font-family: var(--serif);
+      font-size: clamp(1.25rem, 1.8vw, 1.5rem);
+      font-weight: 440;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      margin-bottom: 0.5rem;
+    }
+    .indicator-body p {
+      font-size: 0.96rem;
+      line-height: 1.6;
+      color: var(--ink-soft);
+      margin: 0 0 1.1rem;
+      max-width: 38ch;
+    }
+    .reliability {
+      display: flex;
+      align-items: baseline;
+      gap: 0.9rem;
+    }
+    .reliability .meter {
+      flex: 1;
+      max-width: 14rem;
+      height: 1px;
+      background: var(--rule-strong);
+      position: relative;
+    }
+    .reliability .meter::after {
+      content: "";
+      position: absolute;
+      inset: 0 100% 0 0;
+      background: var(--accent);
+      height: 2px;
+      top: -0.5px;
+      transition: right 1.3s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .reliability.is-in .meter::after { right: calc(100% - var(--fill, 0%)); }
+    .reliability .pct {
+      font-family: var(--mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 0.92rem;
+      letter-spacing: 0.04em;
+      min-width: 3.5em;
+    }
+    .reliability .pct-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+    }
+
+    .research-footnote {
+      margin-top: clamp(2.5rem, 5vw, 3.5rem);
+      padding-top: clamp(2rem, 3vw, 2.5rem);
+      border-top: 1px solid var(--rule);
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .research-footnote .note {
+      font-family: var(--serif);
+      font-style: italic;
+      font-weight: 300;
+      font-size: 1.05rem;
+      color: var(--ink-soft);
+      max-width: 42rem;
+    }
+
+    /* ------------------------------------------------------------------
+       §05 Dark block — security & privacy
+       ------------------------------------------------------------------ */
+
+    section.s--dark {
+      background: var(--ink-deep);
+      color: var(--paper);
+      border: 0;
+    }
+    section.s--dark::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.5;
+      mix-blend-mode: soft-light;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.96  0 0 0 0 0.94  0 0 0 0 0.88  0 0 0 0.07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    }
+    section.s--dark .section-tag { color: rgba(244, 239, 228, 0.55); }
+    section.s--dark .section-tag::before { background: rgba(244, 239, 228, 0.3); }
+    section.s--dark .section-head h2 { color: var(--paper); }
+    section.s--dark .lede { color: rgba(244, 239, 228, 0.75); }
+
+    .security-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+      margin-top: clamp(2.5rem, 5vw, 3.5rem);
+      border-top: 1px solid rgba(244, 239, 228, 0.18);
+    }
+    @media (min-width: 760px) {
+      .security-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .security-item {
+      padding: clamp(1.4rem, 3vw, 2rem) clamp(1rem, 2vw, 1.5rem);
+      border-bottom: 1px solid rgba(244, 239, 228, 0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    @media (min-width: 760px) {
+      .security-item:nth-child(odd) { border-right: 1px solid rgba(244, 239, 228, 0.12); }
+    }
+    .security-item .tag {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.3rem;
+    }
+    .security-item h3 {
+      font-family: var(--serif);
+      font-weight: 430;
+      font-size: 1.4rem;
+      letter-spacing: -0.008em;
+      line-height: 1.15;
+      color: var(--paper);
+    }
+    .security-item p {
+      font-size: 0.95rem;
+      color: rgba(244, 239, 228, 0.72);
+      line-height: 1.6;
+      max-width: 36ch;
+      margin: 0;
+    }
+
+    /* ------------------------------------------------------------------
+       §06 Pricing
+       ------------------------------------------------------------------ */
+
+    .pricing-head {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: clamp(1rem, 3vw, 2rem);
+      align-items: end;
+      margin-bottom: clamp(2rem, 4vw, 3rem);
+    }
+    @media (min-width: 900px) {
+      .pricing-head { grid-template-columns: 1.2fr 1fr; }
+    }
+    .pricing-head p {
+      font-size: 1rem;
+      color: var(--ink-soft);
+      max-width: 34rem;
+      margin: 0;
+    }
+
+    .pricing-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--sans);
+      font-size: 0.95rem;
+    }
+    .pricing-table thead th {
+      text-align: left;
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+      font-weight: 500;
+      padding: 0.9rem 0.6rem;
+      border-bottom: 1px solid var(--rule-strong);
+    }
+    .pricing-table td {
+      padding: 1rem 0.6rem;
+      border-bottom: 1px solid var(--rule);
+      vertical-align: middle;
+    }
+    .pricing-table tr:last-child td { border-bottom: 0; }
+    .pricing-table td.tier {
+      font-family: var(--serif);
+      font-size: 1.1rem;
+      font-weight: 440;
+      color: var(--ink);
+    }
+    .pricing-table td.price {
+      font-family: var(--serif);
+      font-variant-numeric: tabular-nums;
+      font-size: 1.15rem;
+      color: var(--ink);
+      font-weight: 430;
+    }
+    .pricing-table td.rate {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--ink-mute);
+      font-variant-numeric: tabular-nums;
+    }
+    .pricing-table tr.is-free td.tier { color: var(--accent); }
+    .pricing-table tr.is-free td.price { color: var(--accent); font-weight: 500; }
+
+    .pricing-note {
+      margin-top: 1.8rem;
+      font-family: var(--serif);
+      font-style: italic;
+      font-weight: 300;
+      color: var(--ink-mute);
+      font-size: 0.95rem;
+    }
+
+    /* ------------------------------------------------------------------
+       §07 FAQ
+       ------------------------------------------------------------------ */
+
+    .faq {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+      border-top: 1px solid var(--rule-strong);
+    }
+    .faq details {
+      border-bottom: 1px solid var(--rule);
+      padding: 1.2rem 0;
+    }
+    .faq summary {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+      font-family: var(--serif);
+      font-weight: 430;
+      font-size: 1.15rem;
+      letter-spacing: -0.008em;
+      color: var(--ink);
+      transition: color 0.15s;
+    }
+    .faq summary:hover { color: var(--accent); }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary::after {
+      content: "+";
+      font-family: var(--mono);
+      font-size: 1.3rem;
+      color: var(--ink-mute);
+      font-weight: 400;
+      transition: transform 0.2s, color 0.15s;
+      flex-shrink: 0;
+    }
+    .faq details[open] summary::after { content: "–"; color: var(--accent); }
+    .faq details p {
+      margin: 0.8rem 0 0;
+      color: var(--ink-soft);
+      font-size: 0.98rem;
+      line-height: 1.65;
+      max-width: 56ch;
+    }
+
+    /* ------------------------------------------------------------------
+       §08 Final CTA
+       ------------------------------------------------------------------ */
+
+    section.cta {
+      text-align: center;
+      padding: clamp(5rem, 10vw, 8rem) 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    section.cta h2 {
+      font-family: var(--serif);
+      font-weight: 430;
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      letter-spacing: -0.015em;
+      line-height: 1.05;
+      max-width: 20ch;
+      margin: 0 auto 1.4rem;
+    }
+    section.cta p {
+      font-family: var(--serif);
+      font-style: italic;
+      font-weight: 300;
+      font-size: clamp(1.05rem, 1.6vw, 1.3rem);
+      color: var(--ink-soft);
+      max-width: 40rem;
+      margin: 0 auto 2.2rem;
+    }
+
+    /* ------------------------------------------------------------------
+       Footer
+       ------------------------------------------------------------------ */
+
+    footer {
+      padding: clamp(2rem, 4vw, 3rem) 0 clamp(2.2rem, 4vw, 3rem);
+      font-family: var(--mono);
+      font-size: 11.5px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+    }
+    .footer-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1.4rem 2rem;
+    }
+    .footer-grid a {
+      color: var(--ink-mute);
+      text-decoration: none;
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 1px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .footer-grid a:hover { color: var(--accent); border-color: var(--accent); }
+    .footer-grid .dot { display: inline-block; padding: 0 0.5rem; color: var(--rule-strong); }
+
+    /* ------------------------------------------------------------------
+       Animations
+       ------------------------------------------------------------------ */
+
+    @keyframes underline-grow { to { transform: scaleX(1); } }
+    @keyframes lift-in {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-edition,
+    h1.hero-title,
+    .hero-deck,
+    .hero-cta,
+    .hero-trust,
+    .hero-visual {
+      opacity: 0;
+      animation: lift-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    .hero-edition { animation-delay: 0.12s; }
+    h1.hero-title { animation-delay: 0.28s; }
+    .hero-deck { animation-delay: 0.5s; }
+    .hero-cta { animation-delay: 0.7s; }
+    .hero-trust { animation-delay: 0.85s; }
+    .hero-visual { animation-delay: 0.45s; }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1), transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .reveal.is-in { opacity: 1; transform: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .hero-edition, h1.hero-title, .hero-deck, .hero-cta, .hero-trust, .hero-visual { opacity: 1; }
+      h1.hero-title .accent-underline::after { transform: scaleX(1); }
+      .reveal { opacity: 1; transform: none; }
+      .reliability .meter::after { right: calc(100% - var(--fill, 0%)); }
+    }
+
+    ::selection { background: var(--accent); color: var(--paper); }
+  </style>
+</head>
+<body>
+
+<!-- ========================================================================
+     TOP NAV
+     ======================================================================== -->
+<nav class="top">
+  <div class="col inner">
+    <a href="#top" class="mark">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+        <rect x="1" y="1" width="4" height="4" fill="currentColor"/>
+        <rect x="7" y="1" width="4" height="4" fill="currentColor" opacity="0.55"/>
+        <rect x="13" y="1" width="4" height="4" fill="currentColor" opacity="0.25"/>
+        <rect x="1" y="7" width="4" height="4" fill="currentColor" opacity="0.55"/>
+        <rect x="7" y="7" width="4" height="4" fill="#A04A2B"/>
+        <rect x="13" y="7" width="4" height="4" fill="currentColor" opacity="0.55"/>
+        <rect x="1" y="13" width="4" height="4" fill="currentColor" opacity="0.25"/>
+        <rect x="7" y="13" width="4" height="4" fill="currentColor" opacity="0.55"/>
+        <rect x="13" y="13" width="4" height="4" fill="currentColor"/>
+      </svg>
+      IWRI
+    </a>
+    <ul>
+      <li class="hide-sm"><a href="#tour">Product</a></li>
+      <li class="hide-sm"><a href="#research">Research</a></li>
+      <li class="hide-sm"><a href="#pricing">Pricing</a></li>
+      <li class="hide-sm"><a href="#faq">FAQ</a></li>
+      <li><a href="#install" class="btn">Install<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ========================================================================
+     HERO
+     ======================================================================== -->
+<header id="top" class="hero">
+  <div class="col">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-edition kicker">
+          <span class="plate" aria-hidden="true"></span>
+          <span style="color: var(--accent);">A Forge app for Jira Software &middot; Cloud</span>
+        </div>
+
+        <h1 class="hero-title display">
+          See how closely your Scrum teams&rsquo; <span class="accent-underline">Jira data</span> reflects the work they&rsquo;re actually doing.
+        </h1>
+
+        <p class="hero-deck deck">
+          IWRI reads the sprint data you already keep in Jira, scores every Scrum team on how
+          closely it&rsquo;s being tracked, and points you at specific patterns worth a conversation.
+          Read-only. Nothing leaves your tenancy.
+        </p>
+
+        <div class="hero-cta">
+          <a href="#install" class="btn btn--lg">
+            Install from Atlassian Marketplace
+            <svg width="14" height="14" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a href="#tour" class="btn btn--lg btn--ghost">See how it works</a>
+        </div>
+
+        <div class="hero-trust">
+          <span><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/><path d="M4 6l1.5 1.5L8 4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg> Built on Atlassian Forge</span>
+          <span><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="2" y="4" width="8" height="6" stroke="currentColor" stroke-width="1.2"/><path d="M4 4V3a2 2 0 014 0v1" stroke="currentColor" stroke-width="1.2"/></svg> Read-only &middot; no egress</span>
+          <span><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/><path d="M6 3v3l2 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg> Free for teams up to 10 users</span>
+        </div>
+      </div>
+
+      <!-- Stylised product tile -->
+      <div class="hero-visual" aria-hidden="true">
+        <div class="panel panel--back"></div>
+        <div class="panel panel--main">
+          <div class="hv-hed">
+            <span>Dashboard &mdash; 9 teams scored</span>
+            <span>Apr 2026</span>
+          </div>
+          <div class="hv-grid">
+            <div class="hv-cell t-healthy"><span class="band"></span><div class="pj">PAY</div><div class="name">Payments</div><div class="lvl">Healthy</div><div class="dots"><i></i><i></i><i></i><i></i><i></i></div></div>
+            <div class="hv-cell t-low"><span class="band"></span><div class="pj">CAMP</div><div class="name">Campaign</div><div class="lvl">Low</div><div class="dots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div>
+            <div class="hv-cell t-moderate"><span class="band"></span><div class="pj">INF</div><div class="name">Infra Ops</div><div class="lvl">Moderate</div><div class="dots"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div></div>
+            <div class="hv-cell t-elevated"><span class="band"></span><div class="pj">DATA</div><div class="name">Data Platform</div><div class="lvl">Elevated</div><div class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div></div>
+            <div class="hv-cell t-high"><span class="band"></span><div class="pj">AUTH</div><div class="name">Auth &amp; Identity</div><div class="lvl">High</div><div class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div></div>
+            <div class="hv-cell t-healthy"><span class="band"></span><div class="pj">MOB</div><div class="name">Mobile</div><div class="lvl">Healthy</div><div class="dots"><i></i><i></i><i></i><i></i><i></i></div></div>
+            <div class="hv-cell t-low"><span class="band"></span><div class="pj">REC</div><div class="name">Recs</div><div class="lvl">Low</div><div class="dots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div>
+            <div class="hv-cell t-moderate"><span class="band"></span><div class="pj">API</div><div class="name">Public API</div><div class="lvl">Moderate</div><div class="dots"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div></div>
+            <div class="hv-cell t-mute"><span class="band"></span><div class="pj">SRE</div><div class="name">Reliability</div><div class="lvl" style="font-style: italic;">Insufficient data</div><div class="dots"><i></i><i></i><i></i><i></i><i></i></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ========================================================================
+     §01 THE PROBLEM
+     ======================================================================== -->
+<section class="s" id="problem">
+  <div class="col">
+    <div class="section-head reveal">
+      <div class="section-tag">&sect;01 &mdash; The problem</div>
+      <h2 class="hed">Some of your teams are carrying work you can&rsquo;t see.</h2>
+    </div>
+
+    <div class="problem-grid">
+      <div class="problem-prose reveal">
+        <p class="lede">
+          Every software team does work that never shows up in Jira. <strong>The friendly kind</strong>:
+          mentoring, incident triage, unblocking other teams, fixing things before they become tickets.
+          And <strong>the harder kind</strong>: requests that arrived in Slack, handovers that stayed verbal,
+          tickets written after the work was done.
+        </p>
+        <p>
+          This invisible work drains capacity, skews estimates, and burns people out. Teams that carry a
+          lot of it tend to leave signatures in the data they already keep: velocity that swings, commitments
+          that slip, tickets that never get started, descriptions left empty. The signatures are faint on
+          any single sprint, but persistent across many.
+        </p>
+        <p>
+          IWRI reads those signatures, scores every Scrum team in your instance, and tells you which ones
+          are worth a conversation &mdash; without asking you to roll out a new tool, new process, or new
+          rating system to your engineers.
+        </p>
+      </div>
+
+      <div class="examples reveal">
+        <div class="example"><div class="n">01</div><div class="txt">Velocity stability breaks down<em>Planned work vs delivered work drifts further apart, sprint over sprint.</em></div></div>
+        <div class="example"><div class="n">02</div><div class="txt">Tickets are left not even started<em>Not just unfinished. Never picked up. Other things displaced them.</em></div></div>
+        <div class="example"><div class="n">03</div><div class="txt">Mid-sprint additions become erratic<em>One week none; next week a flood. The pattern is the problem.</em></div></div>
+        <div class="example"><div class="n">04</div><div class="txt">Fewer tickets per person than peers<em>Work is happening &mdash; just not where the tracker is looking.</em></div></div>
+        <div class="example"><div class="n">05</div><div class="txt">Descriptions silently empty out<em>Rushed ticket creation. Verbal requirements. Nothing documented.</em></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================================
+     §02 PRODUCT TOUR
+     ======================================================================== -->
+<section class="s" id="tour">
+  <div class="col">
+    <div class="section-head reveal">
+      <div class="section-tag">&sect;02 &mdash; The app, in three moves</div>
+      <h2 class="hed">Install it. Let it compute. Read the signals.</h2>
+    </div>
+
+    <div class="tour">
+
+      <!-- Move 1: Dashboard -->
+      <div class="tour-row reveal">
+        <div class="tour-copy">
+          <div class="step">01 &mdash; The dashboard</div>
+          <h3>Every Scrum team, on one page, with the colour they&rsquo;ve earned.</h3>
+          <p>
+            IWRI scores every eligible Scrum team in your Jira site and lays them out as a single grid,
+            colour-banded by risk level. You see at a glance where your attention is worth spending,
+            and which teams are sitting comfortably.
+          </p>
+          <ul>
+            <li>Six risk levels, from Healthy to High, with a dedicated state for Insufficient Data.</li>
+            <li>Teams with fewer than three active developers are surfaced, not hidden.</li>
+            <li>Freshness indicator tells you exactly how stale (or fresh) the numbers are.</li>
+          </ul>
+        </div>
+
+        <div class="mockup m-dash">
+          <div class="bar"><span>Dashboard &middot; 12 teams</span><span>Computed 2h ago</span></div>
+          <div class="grid">
+            <div class="hv-cell t-healthy"><span class="band"></span><div class="pj">PAY</div><div class="name">Payments</div><div class="lvl">Healthy</div><div class="dots"><i></i><i></i><i></i><i></i><i></i></div></div>
+            <div class="hv-cell t-healthy"><span class="band"></span><div class="pj">MOB</div><div class="name">Mobile</div><div class="lvl">Healthy</div><div class="dots"><i></i><i></i><i></i><i></i><i></i></div></div>
+            <div class="hv-cell t-low"><span class="band"></span><div class="pj">CAMP</div><div class="name">Campaign</div><div class="lvl">Low</div><div class="dots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div>
+            <div class="hv-cell t-low"><span class="band"></span><div class="pj">REC</div><div class="name">Recs</div><div class="lvl">Low</div><div class="dots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div>
+            <div class="hv-cell t-moderate"><span class="band"></span><div class="pj">INF</div><div class="name">Infra Ops</div><div class="lvl">Moderate</div><div class="dots"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div></div>
+            <div class="hv-cell t-moderate"><span class="band"></span><div class="pj">API</div><div class="name">Public API</div><div class="lvl">Moderate</div><div class="dots"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div></div>
+            <div class="hv-cell t-elevated"><span class="band"></span><div class="pj">DATA</div><div class="name">Data Platform</div><div class="lvl">Elevated</div><div class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div></div>
+            <div class="hv-cell t-elevated"><span class="band"></span><div class="pj">BIL</div><div class="name">Billing</div><div class="lvl">Elevated</div><div class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div></div>
+            <div class="hv-cell t-high"><span class="band"></span><div class="pj">AUTH</div><div class="name">Auth &amp; Identity</div><div class="lvl">High</div><div class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div></div>
+          </div>
+          <div class="fig">Fig. 01 &mdash; Dashboard tab, populated state</div>
+        </div>
+      </div>
+
+      <!-- Move 2: Drill-down -->
+      <div class="tour-row reverse reveal">
+        <div class="tour-copy">
+          <div class="step">02 &mdash; The team drill-down</div>
+          <h3>Every flag explains itself. In plain language, in the same breath.</h3>
+          <p>
+            Click a team. Each flag that fired appears with a one-paragraph explanation of what the data
+            is suggesting and why. No z-scores, no sigma, no jargon &mdash; managers and leads see the
+            same page, and they see it in English.
+          </p>
+          <ul>
+            <li>Up to five flags per team, each rooted in a distinct indicator.</li>
+            <li>Every flag links to its indicator evidence for the sprints that triggered it.</li>
+            <li>Annotations let you add context that travels with the team across recomputes.</li>
+          </ul>
+        </div>
+
+        <div class="mockup m-drill">
+          <div class="bar"><span>Team &middot; Auth &amp; Identity</span><span>High &middot; 4 flags</span></div>
+          <div class="title">Auth &amp; Identity</div>
+          <div class="sub">AUTH &middot; 6 sprints analysed &middot; Last 86 days</div>
+
+          <div class="flag">
+            <div class="fname">Completing less than planned</div>
+            <div class="fbody">Velocity is unstable, commitments are consistently missed, and planned work is left unstarted. Three signals, moving together.</div>
+          </div>
+          <div class="flag amb">
+            <div class="fname">Tickets lacking descriptions</div>
+            <div class="fbody">A higher proportion of completed tickets have empty descriptions than peer teams, suggesting rushed creation or verbal requirements.</div>
+          </div>
+          <div class="flag sage">
+            <div class="fname">Unpredictable mid-sprint changes</div>
+            <div class="fbody">The volume of unplanned work added mid-sprint swings widely between sprints. Interruptions are arriving from inconsistent sources.</div>
+          </div>
+
+          <div class="fig">Fig. 02 &mdash; Team drill-down, flag panel</div>
+        </div>
+      </div>
+
+      <!-- Move 3: Methodology -->
+      <div class="tour-row reveal">
+        <div class="tour-copy">
+          <div class="step">03 &mdash; The methodology</div>
+          <h3>Every formula, every threshold, documented inside the app.</h3>
+          <p>
+            The research is not locked behind a paywall, a whitepaper, or a sales call. IWRI ships with
+            a full methodology tab: every indicator formula, every eligibility rule, every known limitation,
+            every alternative explanation a team might offer. Read it. Disagree with it. Take it to your
+            agile coach.
+          </p>
+          <ul>
+            <li>Z-score standardisation explained in plain language first, formulas second.</li>
+            <li>Every known confound (team size, estimation inflation, benign causes) called out by name.</li>
+            <li>Australian English throughout. No em dashes. No marketing slop.</li>
+          </ul>
+        </div>
+
+        <div class="mockup m-meth">
+          <div class="bar"><span>Methodology &middot; Indicators</span><span>&sect;05</span></div>
+          <div class="meta">Commitment Gaps</div>
+          <div style="font-size: 0.92rem; color: var(--ink-soft); line-height: 1.55; max-width: 44ch;">
+            Captures the average shortfall between what a team commits to and what they deliver. Over-delivery is clamped to zero.
+          </div>
+          <div class="formula">mean( max(0, (committed &minus; completed) / committed) )</div>
+          <svg class="curve" viewBox="0 0 300 100" aria-hidden="true">
+            <defs>
+              <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="#A04A2B" stop-opacity="0.18"/>
+                <stop offset="1" stop-color="#A04A2B" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0,90 C40,90 60,85 80,75 C110,58 130,30 150,28 C170,30 190,58 220,75 C240,85 260,90 300,90 L300,100 L0,100 Z" fill="url(#g1)"/>
+            <path d="M0,90 C40,90 60,85 80,75 C110,58 130,30 150,28 C170,30 190,58 220,75 C240,85 260,90 300,90" stroke="#A04A2B" stroke-width="1.2" fill="none"/>
+            <line x1="0" x2="300" y1="90" y2="90" stroke="rgba(26,30,43,0.28)" stroke-width="0.8"/>
+            <line x1="150" x2="150" y1="28" y2="90" stroke="rgba(26,30,43,0.28)" stroke-width="0.8" stroke-dasharray="2 3"/>
+            <line x1="210" x2="210" y1="77" y2="90" stroke="rgba(26,30,43,0.28)" stroke-width="0.8" stroke-dasharray="2 3"/>
+            <text x="152" y="98" font-family="IBM Plex Mono" font-size="8" fill="rgba(26,30,43,0.6)">&mu;</text>
+            <text x="213" y="98" font-family="IBM Plex Mono" font-size="8" fill="rgba(26,30,43,0.6)">+1&sigma;</text>
+          </svg>
+          <div class="fig">Fig. 03 &mdash; Methodology tab, indicator detail</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================================
+     §03 PRINCIPLES
+     ======================================================================== -->
+<section class="s" id="principles-sec">
+  <div class="col">
+    <div class="section-head reveal">
+      <div class="section-tag">&sect;03 &mdash; Principles</div>
+      <h2 class="hed">Three constraints we accept on purpose.</h2>
+    </div>
+
+    <div class="principles reveal">
+      <div class="principle">
+        <div class="idx">01</div>
+        <h3>Screening, not scorecard.</h3>
+        <p>Flags indicate patterns worth investigating. They do not confirm a problem, and they are never a substitute for judgement.</p>
+      </div>
+      <div class="principle">
+        <div class="idx">02</div>
+        <h3>Relative, not absolute.</h3>
+        <p>Scores are meaningful within your scored population. Cross-organisation comparison is not supported. By design.</p>
+      </div>
+      <div class="principle">
+        <div class="idx">03</div>
+        <h3>Conversation starter, not verdict.</h3>
+        <p>The app points you at where to start a conversation with a team. What happens next is professional judgement, not algorithm.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================================
+     §04 RESEARCH
+     ======================================================================== -->
+<section class="s" id="research">
+  <div class="col">
+    <div class="section-head reveal">
+      <div class="section-tag">&sect;04 &mdash; Research</div>
+      <h2 class="hed">Seven signals, distilled from hundreds of Scrum teams.</h2>
+    </div>
+
+    <p class="lede reveal" style="max-width: 44rem;">
+      The research behind IWRI was conducted across hundreds of Scrum teams in banking, telecommunications,
+      and other sectors. Teams self-reported their invisible-work burden through structured surveys;
+      team leads were interviewed to map how that work actually showed up in their day-to-day.
+      Over twenty candidate indicators were tested. Only the seven that held up were kept.
+    </p>
+
+    <div class="funnel reveal">
+      <div class="funnel-stage">
+        <div class="funnel-tag">Stage one</div>
+        <div class="funnel-stat">20<sup style="font-size:0.5em; vertical-align: top;">+</sup></div>
+        <div class="funnel-label">candidate indicators across sprint delivery, tracking behaviour, and activity rhythms</div>
+      </div>
+      <div class="funnel-arrow" aria-hidden="true">
+        <span class="label">Surveys<br>+ interviews</span>
+        <svg width="44" height="10" viewBox="0 0 44 10"><line x1="0" y1="5" x2="34" y2="5" stroke="currentColor" stroke-width="1"/><polygon points="34,1 44,5 34,9" fill="currentColor"/></svg>
+      </div>
+      <div class="funnel-stage">
+        <div class="funnel-tag">Stage two</div>
+        <div class="funnel-stat">Hundreds</div>
+        <div class="funnel-label">of Scrum teams across banking, telecommunications, and other sectors</div>
+      </div>
+      <div class="funnel-arrow" aria-hidden="true">
+        <span class="label">Only consistent<br>patterns kept</span>
+        <svg width="44" height="10" viewBox="0 0 44 10"><line x1="0" y1="5" x2="34" y2="5" stroke="currentColor" stroke-width="1"/><polygon points="34,1 44,5 34,9" fill="currentColor"/></svg>
+      </div>
+      <div class="funnel-stage is-final">
+        <div class="funnel-tag">Stage three</div>
+        <div class="funnel-stat">07<span class="accent-dot">.</span></div>
+        <div class="funnel-label">validated indicators, each with a split-half reliability score between 53 and 86 percent</div>
+      </div>
+    </div>
+    <div class="funnel-caption">Indicators that did not show a consistent, repeatable pattern were discarded.</div>
+
+    <p class="indicator-intro reveal">
+      Reliability below is split-half consistency: how stable each signal remains when two independent
+      halves of the underlying data are compared. A higher figure means the pattern is less likely to
+      come from a single noisy sprint, and more likely to reflect something persistent about the team.
+    </p>
+
+    <div class="indicator-grid reveal" id="indicator-grid">
+      <article class="indicator">
+        <div class="indicator-num">01</div>
+        <div class="indicator-body">
+          <h3>Velocity Stability</h3>
+          <p>When invisible work absorbs capacity, the gap between what a team plans and what they deliver becomes erratic.</p>
+          <div class="reliability" data-fill="55"><span class="pct-label">Consistency</span><span class="meter" aria-hidden="true"></span><span class="pct">55&thinsp;%</span></div>
+        </div>
+      </article>
+      <article class="indicator">
+        <div class="indicator-num">02</div>
+        <div class="indicator-body">
+          <h3>Commitment Gaps</h3>
+          <p>Teams carrying invisible work consistently deliver less than they commit to, because their real workload is larger than what is tracked.</p>
+          <div class="reliability" data-fill="74"><span class="pct-label">Consistency</span><span class="meter" aria-hidden="true"></span><span class="pct">74&thinsp;%</span></div>
+        </div>
+      </article>
+      <article class="indicator">
+        <div class="indicator-num">03</div>
+        <div class="indicator-body">
+          <h3>Work Left Undone</h3>
+          <p>Planned tickets that are never even started suggest untracked work displaced the planned work during the sprint.</p>
+          <div class="reliability" data-fill="69"><span class="pct-label">Consistency</span><span class="meter" aria-hidden="true"></span><span class="pct">69&thinsp;%</span></div>
+        </div>
+      </article>
+      <article class="indicator">
+        <div class="indicator-num">04</div>
+        <div class="indicator-body">
+          <h3>Tracking per Person</h3>
+          <p>Teams tracking fewer items per developer than peers may have significant work happening outside Jira entirely.</p>
+          <div class="reliability" data-fill="78"><span class="pct-label">Consistency</span><span class="meter" aria-hidden="true"></span><span class="pct">78&thinsp;%</span></div>
+        </div>
+      </article>
+      <article class="indicator">
+        <div class="indicator-num">05</div>
+        <div class="indicator-body">
+          <h3>Daily Jira Activity</h3>
+          <p>Frequent days with zero Jira activity can indicate the team is busy, just not with anything that shows up in the tool.</p>
+          <div class="reliability" data-fill="81"><span class="pct-label">Consistency</span><span class="meter" aria-hidden="true"></span><span class="pct">81&thinsp;%</span></div>
+        </div>
+      </article>
+      <article class="indicator">
+        <div class="indicator-num">06</div>
+        <div class="indicator-body">
+          <h3>Ticket Descriptions</h3>
+          <p>Empty ticket descriptions often signal rushed ticket creation or work that was communicated verbally and never documented.</p>
+          <div class="reliability" data-fill="86"><span class="pct-label">Consistency</span><span class="meter" aria-hidden="true"></span><span class="pct">86&thinsp;%</span></div>
+        </div>
+      </article>
+      <article class="indicator">
+        <div class="indicator-num">07</div>
+        <div class="indicator-body">
+          <h3>Mid-Sprint Changes</h3>
+          <p>Unpredictable volumes of unplanned work added mid-sprint suggest recurring interruptions from sources not captured in planning.</p>
+          <div class="reliability" data-fill="53"><span class="pct-label">Consistency</span><span class="meter" aria-hidden="true"></span><span class="pct">53&thinsp;%</span></div>
+        </div>
+      </article>
+    </div>
+
+    <div class="research-footnote reveal">
+      <div class="note">
+        The full methodology &mdash; formulas, eligibility rules, every known confound and alternative
+        explanation &mdash; is documented inside the app itself, and on the standalone research note.
+      </div>
+      <a class="btn btn--ghost" href="research.html">Read the research note
+        <svg width="14" height="14" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================================
+     §05 SECURITY & PRIVACY (dark block)
+     ======================================================================== -->
+<section class="s s--dark" id="security">
+  <div class="col">
+    <div class="section-head reveal">
+      <div class="section-tag">&sect;05 &mdash; Security &amp; privacy</div>
+      <h2 class="hed">Your data never leaves Atlassian.</h2>
+    </div>
+
+    <p class="lede reveal" style="max-width: 46rem;">
+      IWRI is a Forge app. It runs entirely on Atlassian&rsquo;s infrastructure, inside the sandbox that
+      Atlassian audits on your behalf. The developer never sees your Jira data &mdash; not during
+      normal operation, not during support, not ever.
+    </p>
+
+    <div class="security-grid reveal">
+      <div class="security-item">
+        <div class="tag">01 &middot; Hosting</div>
+        <h3>100% on Atlassian Forge.</h3>
+        <p>All compute runs inside Atlassian&rsquo;s Forge sandbox. No external servers, no separate vendor cloud.</p>
+      </div>
+      <div class="security-item">
+        <div class="tag">02 &middot; Scopes</div>
+        <h3>Read-only, and minimal.</h3>
+        <p>Six granular Jira scopes to read sprint, board, and issue data. Plus <code>storage:app</code> for the scores themselves. No writes.</p>
+      </div>
+      <div class="security-item">
+        <div class="tag">03 &middot; Egress</div>
+        <h3>Zero external fetch.</h3>
+        <p>The manifest declares no external domains. Atlassian&rsquo;s runtime enforces that. Any undeclared call would be silently blocked.</p>
+      </div>
+      <div class="security-item">
+        <div class="tag">04 &middot; Storage</div>
+        <h3>Aggregates only, site-scoped.</h3>
+        <p>Only numerical scores, category labels, and admin configuration are persisted. No issue content, no user PII.</p>
+      </div>
+      <div class="security-item">
+        <div class="tag">05 &middot; Deletion</div>
+        <h3>Uninstall is complete.</h3>
+        <p>Forge purges all app-managed storage on uninstall. No developer action required. No residual data anywhere.</p>
+      </div>
+      <div class="security-item">
+        <div class="tag">06 &middot; Access</div>
+        <h3>Admin-controlled, three modes.</h3>
+        <p>Open, project-scoped, or admin-granted. Set per site, changeable at any time from the Settings tab.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================================
+     §06 PRICING
+     ======================================================================== -->
+<section class="s" id="pricing">
+  <div class="col">
+    <div class="section-head reveal">
+      <div class="section-tag">&sect;06 &mdash; Pricing</div>
+      <h2 class="hed">Per-user, tier-based. Free for teams up to ten.</h2>
+    </div>
+
+    <div class="pricing-head reveal">
+      <p>
+        Billed through the Atlassian Marketplace. Prices below are in USD and reflect list price;
+        your actual bill follows Atlassian&rsquo;s standard Cloud user tiers. Monthly and annual both
+        available, with annual pricing equivalent to roughly ten months per year.
+      </p>
+      <div style="text-align: right;">
+        <a href="#install" class="btn">See the listing
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <table class="pricing-table reveal">
+      <thead>
+        <tr>
+          <th>Jira users</th>
+          <th>Monthly</th>
+          <th>Annual</th>
+          <th>Per user / mo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="is-free"><td class="tier">Up to 10</td><td class="price">Free</td><td class="price">Free</td><td class="rate">&mdash;</td></tr>
+        <tr><td class="tier">25</td><td class="price">$35</td><td class="price">$350</td><td class="rate">$1.40</td></tr>
+        <tr><td class="tier">50</td><td class="price">$60</td><td class="price">$600</td><td class="rate">$1.20</td></tr>
+        <tr><td class="tier">100</td><td class="price">$100</td><td class="price">$1,000</td><td class="rate">$1.00</td></tr>
+        <tr><td class="tier">250</td><td class="price">$200</td><td class="price">$2,000</td><td class="rate">$0.80</td></tr>
+        <tr><td class="tier">500</td><td class="price">$350</td><td class="price">$3,500</td><td class="rate">$0.70</td></tr>
+        <tr><td class="tier">1,000</td><td class="price">$600</td><td class="price">$6,000</td><td class="rate">$0.60</td></tr>
+        <tr><td class="tier">2,000</td><td class="price">$1,000</td><td class="price">$10,000</td><td class="rate">$0.50</td></tr>
+        <tr><td class="tier">5,000</td><td class="price">$2,000</td><td class="price">$20,000</td><td class="rate">$0.40</td></tr>
+        <tr><td class="tier">10,000+</td><td class="price">$3,500</td><td class="price">$35,000</td><td class="rate">$0.35</td></tr>
+      </tbody>
+    </table>
+
+    <p class="pricing-note reveal">
+      A thirty-day free trial is included on every paid tier, provided by the Atlassian Marketplace.
+    </p>
+  </div>
+</section>
+
+<!-- ========================================================================
+     §07 FAQ
+     ======================================================================== -->
+<section class="s" id="faq">
+  <div class="col-narrow">
+    <div class="section-head reveal">
+      <div class="section-tag">&sect;07 &mdash; Frequently asked</div>
+      <h2 class="hed">What people ask before installing.</h2>
+    </div>
+
+    <div class="faq reveal">
+      <details>
+        <summary>Will my teams feel like they&rsquo;re being watched?</summary>
+        <p>IWRI does not score individuals, log time, or track hours. It looks only at aggregate sprint patterns per team. The UI is explicit that outputs are screening signals, not performance judgements, and our terms of service prohibit using scores for hiring, firing, or performance management. Every flag is phrased as a conversation-starter, not a verdict.</p>
+      </details>
+      <details>
+        <summary>What if we&rsquo;re Kanban, not Scrum?</summary>
+        <p>Version 1 of IWRI supports Scrum only. Kanban projects in your site are shown in the dashboard as excluded with the reason &ldquo;Kanban (not supported)&rdquo; rather than hidden. Kanban support is on the roadmap but requires a separate indicator set &mdash; the same research that produced the seven Scrum indicators does not transfer cleanly.</p>
+      </details>
+      <details>
+        <summary>We have fewer than twenty Scrum teams. Can we still use it?</summary>
+        <p>Not meaningfully in v1. IWRI&rsquo;s scores are relative &mdash; each team is compared against the population of teams in your site. With fewer than twenty eligible Scrum teams, that comparison is statistically fragile enough that we refuse to produce scores rather than mislead. The app will show a population-minimum message explaining the specific shortfall.</p>
+      </details>
+      <details>
+        <summary>What data does the app store about our teams?</summary>
+        <p>Only derived aggregates: numerical risk scores, category labels, admin configuration, and short annotations authored by admins. No issue content, no user profiles, no sprint or issue keys beyond what is needed to label the aggregate outputs. Everything stored lives in Atlassian Forge Key-Value Storage inside your own tenancy.</p>
+      </details>
+      <details>
+        <summary>Can we grant access to only some people?</summary>
+        <p>Yes. IWRI supports three access modes: open to all licensed Jira users, project-scoped (users see only projects they are admins of), or admin-granted (explicit rules with optional group and project scoping). Admins change modes from the Settings tab at any time.</p>
+      </details>
+      <details>
+        <summary>How often does it recompute?</summary>
+        <p>Admin-configurable: daily or weekly, as a background trigger. Admins can also trigger an on-demand recompute at any time from Settings. Recomputes are cheap &mdash; the app processes only the last eight closed sprints within a ninety-day window per project.</p>
+      </details>
+      <details>
+        <summary>Is the methodology public?</summary>
+        <p>Yes, in two places. The app ships with a full methodology tab covering every formula, threshold, eligibility rule, and known limitation. A condensed standalone research note is published at <a href="research.html">emid11.github.io/iwri-legal/research.html</a>. No whitepaper paywall, no sales call required.</p>
+      </details>
+      <details>
+        <summary>Who built this, and how do I reach them?</summary>
+        <p>IWRI is developed and maintained by Ayman Idris (ABN 59&nbsp;540&nbsp;661&nbsp;752), based in Sydney, Australia. Support is direct to the developer at <a href="mailto:idrisayman88@gmail.com">idrisayman88@gmail.com</a> &mdash; response target two business days, best effort.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================================
+     §08 FINAL CTA
+     ======================================================================== -->
+<section class="cta" id="install">
+  <div class="col-narrow reveal">
+    <h2 class="display">Install IWRI. See what your sprint data already knows.</h2>
+    <p>Free for teams up to ten. Thirty-day trial on every paid tier. No external data, no surveys, no process change asked of your engineers.</p>
+    <a href="https://marketplace.atlassian.com/" class="btn btn--lg">
+      Get it on the Atlassian Marketplace
+      <svg width="14" height="14" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</section>
+
+</main>
+
+<!-- ========================================================================
+     FOOTER
+     ======================================================================== -->
+<footer>
+  <div class="col">
+    <div class="footer-grid">
+      <span>Ayman Idris <span class="dot">&middot;</span> ABN 59 540 661 752 <span class="dot">&middot;</span> <a href="mailto:idrisayman88@gmail.com">idrisayman88@gmail.com</a></span>
+      <span>
+        <a href="research.html">Research</a>
+        <span class="dot">&middot;</span>
+        <a href="privacy.html">Privacy</a>
+        <span class="dot">&middot;</span>
+        <a href="terms.html">Terms</a>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    // Reliability bars
+    var bars = document.querySelectorAll('.reliability[data-fill]');
+    // Generic reveal
+    var reveals = document.querySelectorAll('.reveal');
+
+    function fallback() {
+      bars.forEach(function (el) {
+        el.style.setProperty('--fill', el.dataset.fill + '%');
+        el.classList.add('is-in');
+      });
+      reveals.forEach(function (el) { el.classList.add('is-in'); });
+    }
+
+    if (!('IntersectionObserver' in window)) { fallback(); return; }
+
+    var ioBar = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var el = e.target;
+        el.style.setProperty('--fill', el.dataset.fill + '%');
+        el.classList.add('is-in');
+        ioBar.unobserve(el);
+      });
+    }, { threshold: 0.35, rootMargin: '0px 0px -6% 0px' });
+    bars.forEach(function (el) { ioBar.observe(el); });
+
+    var ioRev = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        e.target.classList.add('is-in');
+        ioRev.unobserve(e.target);
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -4% 0px' });
+    reveals.forEach(function (el) { ioRev.observe(el); });
+  })();
+</script>
+
+</body>
+</html>
