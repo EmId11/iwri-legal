@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security Policy — Invisible Work Risk Index</title>
+  <meta name="description" content="Security Policy for the Invisible Work Risk Index Atlassian Forge app.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <nav class="doc-nav"><a href="./">Invisible Work Risk Index</a> &middot; <a href="./privacy.html">Privacy Policy</a> &middot; <a href="./terms.html">Terms of Service</a> &middot; <a href="./security.html" aria-current="page">Security Policy</a></nav>
+
+    <h1>Security Policy — Invisible Work Risk Index (IWRI)</h1>
+
+    <p><strong>Last updated:</strong> 23 April 2026<br>
+    <strong>Effective date:</strong> 23 April 2026</p>
+
+    <p>This Security Policy describes the security practices and architectural properties of the <strong>Invisible Work Risk Index</strong> Atlassian Forge app ("IWRI", "the app", "we", "our"). It is intended for Jira Cloud administrators, procurement reviewers, and security teams evaluating IWRI for installation or continued use.</p>
+
+    <h2>1. Who we are</h2>
+    <p>IWRI is developed and maintained by <strong>Ayman Idris</strong> (sole developer, ABN 59 540 661 752), operating in Australia.</p>
+    <ul>
+      <li><strong>Developer contact:</strong> idrisayman88@gmail.com</li>
+      <li><strong>Security contact:</strong> idrisayman88@gmail.com (subject line <em>"IWRI security disclosure"</em>)</li>
+      <li><strong>App name:</strong> Invisible Work Risk Index</li>
+      <li><strong>Platform:</strong> Atlassian Forge (Jira Cloud)</li>
+    </ul>
+
+    <h2>2. Security by architecture</h2>
+    <p>IWRI's security posture is primarily a function of architectural choices, not of operational controls operated by the developer. The app is a <strong>pure Atlassian Forge app</strong> with the following properties:</p>
+    <ul>
+      <li><strong>Runs entirely inside the Atlassian Forge sandbox.</strong> All backend and UI code executes on Atlassian-managed AWS infrastructure within the customer's Atlassian Cloud tenancy.</li>
+      <li><strong>Zero external network egress.</strong> The app's Forge manifest declares no external fetch, image, script, or style domains. The codebase contains no <code>fetch()</code>, <code>XMLHttpRequest</code>, <code>WebSocket</code>, or third-party HTTP client calls at runtime. No customer data ever leaves Atlassian's infrastructure.</li>
+      <li><strong>No developer-operated infrastructure.</strong> The developer does not run any server, database, analytics pipeline, log aggregator, or backend service that receives customer data.</li>
+      <li><strong>Read-only Jira access.</strong> The app requests no write scopes for Jira. It cannot create, modify, or delete any Jira entity (issue, sprint, project, user, or comment).</li>
+      <li><strong>Inherited platform controls.</strong> The app inherits Atlassian Cloud's platform security controls — authentication, encryption in transit and at rest, tenant isolation, availability, DDoS protection, platform patching, and compliance certifications (SOC 2 Type II, ISO 27001, GDPR processor commitments, and others listed in the <a href="https://www.atlassian.com/trust" rel="noopener">Atlassian Trust Center</a>).</li>
+    </ul>
+    <p>The direct consequence: the classes of vulnerability an external SaaS service usually has to defend against (data exfiltration via a compromised server, credential leaks in transit, supply-chain-injected telemetry, etc.) are not architecturally reachable by IWRI because no such components exist.</p>
+
+    <h2>3. Authentication and authorisation</h2>
+    <ul>
+      <li><strong>End-user authentication</strong> is performed by Atlassian. IWRI never sees, handles, or stores user credentials, OAuth tokens, or session tokens. These are managed entirely by the Forge runtime.</li>
+      <li><strong>Jira API calls</strong> are made through <code>@forge/api</code> using <code>asUser()</code> by default (so calls are scoped to the caller's Jira permissions) and <code>asApp()</code> only where platform documentation specifies it is required (for example, computation jobs that must see all eligible projects regardless of the triggering user).</li>
+      <li><strong>In-app authorisation</strong> is enforced at each resolver boundary. Settings resolvers require the caller to hold Jira <code>ADMINISTER</code> permission or to be present in the app's administrator list; visibility of risk scores to non-admins is governed by the access rules configured by an administrator (global, group-scoped, or admin-granted).</li>
+      <li><strong>No shared secrets.</strong> The app has no API keys, database passwords, or third-party service credentials to manage, rotate, or protect.</li>
+    </ul>
+
+    <h2>4. Data handling</h2>
+    <h3>4.1 Data in transit</h3>
+    <p>All communication between the app's frontend and its backend resolvers is handled by the Forge platform over HTTPS. All Jira API calls from the backend use <code>@forge/api</code>, which routes to Atlassian's own APIs over the platform's internal trust boundary. The app makes no outbound network calls of its own.</p>
+
+    <h3>4.2 Data at rest</h3>
+    <p>All app-managed data is stored in <strong>Atlassian Forge Key-Value Storage</strong> (<code>@forge/kvs</code>), which inherits Atlassian's encryption-at-rest, tenant isolation, and backup guarantees. Stored data is scoped to the customer's installation and is not accessible to the developer.</p>
+
+    <h3>4.3 What is persisted</h3>
+    <p>The app persists only the minimum data required for its function:</p>
+    <ul>
+      <li>Aggregated, cohort-level risk scores (a minimum population threshold is enforced; sub-threshold cohorts are not persisted)</li>
+      <li>Administrator-configured settings (computation schedule, excluded projects, team groups, access rules, administrator list)</li>
+      <li>Audit metadata for administrator actions (for example, the display name of the administrator who last changed a board override)</li>
+      <li>Administrator-authored annotations (free-text notes) on projects</li>
+      <li>Per-user UI state (bookmarks, onboarding progress), keyed by account ID</li>
+    </ul>
+    <p>The app does <strong>not</strong> persist issue descriptions, comments, attachments, worklogs, email addresses, avatars, or individual-level metric values. Personal data stored is limited to display names and account IDs used for access control and audit purposes.</p>
+
+    <h3>4.4 Data retention and deletion</h3>
+    <p>Administrators may delete configured data (run history, annotations, access rules) from within the app. When the app is uninstalled, app-managed Forge storage is subject to Atlassian's Forge data-deletion policy. See our <a href="./privacy.html">Privacy Policy</a> for full details.</p>
+
+    <h2>5. Application security controls</h2>
+    <h3>5.1 Input validation</h3>
+    <p>Every resolver validates its input at the entry point using <a href="https://zod.dev" rel="noopener">Zod</a> schemas. Payloads are parsed with <code>safeParse()</code>; unknown shapes, unknown enum values, or out-of-range values are rejected with a structured error rather than coerced or partially accepted.</p>
+
+    <h3>5.2 Injection prevention</h3>
+    <ul>
+      <li><strong>Jira REST calls:</strong> all calls use <code>@forge/api</code>'s <code>route</code> tagged template literal. User-supplied values flow through parameter binding, never through string concatenation. This eliminates URL-injection paths.</li>
+      <li><strong>JQL:</strong> no user-controlled strings are interpolated into JQL queries. The only dynamic values placed into JQL are numeric sprint IDs typed as <code>number</code> and sourced from Jira's own Agile API responses.</li>
+      <li><strong>Project keys:</strong> administrator-supplied project keys (for example, the excluded-projects list) are validated against the authoritative set returned by Jira's project-search API before being persisted.</li>
+      <li><strong>No user-supplied URLs:</strong> the app accepts no free-text URL fields, redirect targets, or webhook endpoints.</li>
+    </ul>
+
+    <h3>5.3 UI sandbox</h3>
+    <p>The Custom UI pages run inside the Forge iframe sandbox. The app does not use <code>localStorage</code> or <code>sessionStorage</code>, does not perform direct <code>fetch</code> to external domains, and does not use <code>window.open</code> (navigation is performed via <code>router.open</code> from <code>@forge/bridge</code>).</p>
+
+    <h3>5.4 Content Security Policy</h3>
+    <p>The only CSP relaxation declared in the manifest is <code>permissions.content.styles: ['unsafe-inline']</code>, required by the @atlaskit CSS-in-JS styling system used throughout the UI. No external script, style, or image hosts are declared.</p>
+
+    <h3>5.5 PII-safe logging</h3>
+    <p>Structured JSON logging is used throughout. Account IDs that appear in logs (for bookmarks, onboarding, audit trails) are hashed using a 16-character SHA-256 prefix before being logged; raw account IDs are not written to logs.</p>
+
+    <h2>6. Secure development lifecycle</h2>
+    <ul>
+      <li><strong>TypeScript strict mode</strong> across the entire codebase, with <code>any</code> disallowed by project convention.</li>
+      <li><strong>Pre-commit hooks</strong> (Husky) run <code>lint</code>, <code>typecheck</code>, the backend unit test suite, the Custom UI unit test suites (admin page and global page), and a production build before a commit is accepted.</li>
+      <li><strong>Continuous integration:</strong> every push runs tests, lint, and a scope-change gate that fails the build if <code>permissions.scopes</code> changes without an explicit justification in the commit.</li>
+      <li><strong>Pre-deploy:</strong> <code>forge lint</code> runs before every deploy, catching manifest-level issues before upload.</li>
+      <li><strong>Review:</strong> all material changes are manually reviewed before deployment to production; destructive actions require explicit authorisation.</li>
+      <li><strong>No secrets in source:</strong> the app has no credentials, API keys, or private configuration values. There is nothing to leak.</li>
+    </ul>
+
+    <h2>7. Dependencies and supply chain</h2>
+    <ul>
+      <li><strong>Minimal surface:</strong> backend runtime dependencies are limited to the official <code>@forge/*</code> packages (API, resolver, events, KVS) and <code>zod</code> for input validation. Frontend dependencies are limited to <code>@atlaskit/*</code> components, <code>@forge/bridge</code>, and React 18.</li>
+      <li><strong>No telemetry or analytics SDKs.</strong> There is no Sentry, Segment, Mixpanel, Amplitude, Google Analytics, PostHog, Datadog, New Relic, Honeycomb, or LaunchDarkly integration. Verified by full codebase search.</li>
+      <li><strong>Vulnerability monitoring:</strong> dependencies are reviewed for known vulnerabilities using <code>npm audit</code> and GitHub's dependency advisory feed. Critical and high-severity advisories are patched on a priority basis; medium-severity advisories are resolved in the next scheduled release.</li>
+      <li><strong>Reproducible builds:</strong> <code>package-lock.json</code> is committed; builds are deterministic given a pinned lockfile.</li>
+    </ul>
+
+    <h2>8. Logging and monitoring</h2>
+    <ul>
+      <li>Runtime logs flow to Atlassian's Developer Console via the Forge runtime. The developer does not operate any external log aggregator.</li>
+      <li>Logs are structured JSON, with account IDs hashed (see §5.5). Errors are logged with category labels (for example, <code>error.category: 'population_minimum'</code>) rather than free-text stack traces that might contain sensitive data.</li>
+      <li>Platform-level monitoring and alerting is provided by the Forge platform.</li>
+    </ul>
+
+    <h2>9. Vulnerability management and patching</h2>
+    <ul>
+      <li><strong>Platform vulnerabilities</strong> (Forge runtime, Atlassian Cloud infrastructure) are handled by Atlassian and are applied automatically to all installations; no developer action is required.</li>
+      <li><strong>App-level vulnerabilities:</strong> on becoming aware of a security vulnerability in the app itself or in one of its dependencies, the developer will triage within 2 business days, prioritise remediation by severity, and deploy a fix via Forge's minor-version automatic deployment path for the majority of issues. Severity targets for fix delivery:
+        <ul>
+          <li><strong>Critical:</strong> within 7 calendar days of confirmation.</li>
+          <li><strong>High:</strong> within 30 calendar days of confirmation.</li>
+          <li><strong>Medium:</strong> in the next scheduled release, typically within 60 calendar days.</li>
+          <li><strong>Low:</strong> reviewed each release cycle.</li>
+        </ul>
+      </li>
+      <li>Customers are notified of fixes affecting security or data handling via the Marketplace listing's release-notes section.</li>
+    </ul>
+
+    <h2>10. Incident response</h2>
+    <p>If the developer becomes aware of a security incident affecting the app:</p>
+    <ol>
+      <li><strong>Acknowledge</strong> receipt of any report within 2 business days.</li>
+      <li><strong>Investigate</strong> and determine the scope and root cause; engage Atlassian Partner Support for any platform-level involvement.</li>
+      <li><strong>Contain and remediate</strong> — deploy a fix via Forge's fix-forward deployment path.</li>
+      <li><strong>Notify</strong> affected customers directly and Atlassian per the Marketplace Partner Agreement, if customer data is materially affected. Notifications include what was affected, what has been done, and what (if anything) customers should do.</li>
+      <li><strong>Post-incident review</strong> — document the incident, root cause, and preventive changes. Publish a summary in the Marketplace listing if the incident was customer-visible.</li>
+    </ol>
+
+    <h2>11. Backups, availability, and business continuity</h2>
+    <ul>
+      <li>App-managed storage (Forge KVS) is backed up by Atlassian as part of the Forge platform. The developer does not operate any separate backup system.</li>
+      <li>Availability inherits from Atlassian Cloud's platform availability posture (see the <a href="https://www.atlassian.com/trust" rel="noopener">Atlassian Trust Center</a>).</li>
+      <li>Because the app has no developer-operated components, there is no single point of failure beyond the Atlassian platform itself.</li>
+      <li>Because the app has no write scopes for Jira data, a complete loss of app state (however improbable) cannot damage customer Jira data. The worst case is the need to recompute risk scores from live Jira data, which the app performs automatically.</li>
+    </ul>
+
+    <h2>12. Data sharing and third parties</h2>
+    <p>No customer data is shared with, sold to, or disclosed to any third party. The app's <strong>only</strong> subprocessor is <strong>Atlassian Pty Ltd</strong>, which hosts the Forge platform on which the app runs. The app does not use customer data to train, fine-tune, or evaluate any artificial-intelligence or machine-learning model; the risk-scoring algorithm is deterministic statistical logic implemented in TypeScript.</p>
+
+    <h2>13. Responsible disclosure</h2>
+    <p>If you believe you have discovered a security vulnerability in IWRI, we encourage you to report it confidentially:</p>
+    <ul>
+      <li><strong>Email:</strong> <a href="mailto:idrisayman88@gmail.com?subject=IWRI%20security%20disclosure">idrisayman88@gmail.com</a> with the subject line <em>"IWRI security disclosure"</em>.</li>
+      <li><strong>Please include:</strong> a clear description of the issue, reproduction steps, affected version or installation site if known, and your assessment of impact.</li>
+      <li><strong>Please do not</strong> publicly disclose the issue before the developer has had a reasonable opportunity to investigate and remediate (typically 90 days, or sooner if a fix is deployed earlier).</li>
+      <li><strong>Acknowledgement</strong> within 2 business days of a valid report.</li>
+      <li><strong>Coordinated disclosure</strong> with Atlassian where the issue touches platform behaviour.</li>
+      <li><strong>Credit:</strong> reporters who wish to be credited will be acknowledged in the release notes for the fix. No monetary bug bounty is offered at this time.</li>
+    </ul>
+    <p>For vulnerabilities in the Atlassian Forge platform itself, please report directly to <a href="https://www.atlassian.com/trust/security/vulnerability" rel="noopener">Atlassian's security team</a>.</p>
+
+    <h2>14. Compliance posture</h2>
+    <ul>
+      <li><strong>Marketplace requirements:</strong> the app complies with the Atlassian Marketplace Partner Agreement, Cloud App Security Requirements, and passes Atlassian's Ecoscanner checks required for Marketplace listing.</li>
+      <li><strong>Platform certifications:</strong> because the app runs entirely within Atlassian Cloud, the platform's compliance certifications (SOC 2 Type II, ISO 27001, ISO 27018, GDPR processor commitments, and others) apply to the infrastructure, storage, and runtime environment on which IWRI executes. Please refer to the <a href="https://www.atlassian.com/trust/compliance" rel="noopener">Atlassian compliance resources</a> for current certification details.</li>
+      <li><strong>App-level certification:</strong> as a sole-developer app, IWRI is not separately certified under SOC 2, ISO 27001, or similar frameworks. The app's security posture follows from its architectural choice to run entirely within Atlassian's certified platform with no developer-operated external components.</li>
+      <li><strong>Regional data residency</strong> follows Atlassian's Forge data-residency behaviour for the customer's tenant.</li>
+    </ul>
+
+    <h2>15. Changes to this policy</h2>
+    <p>We may update this Security Policy from time to time. Material changes — for example, the introduction of a new subprocessor, the addition of any external egress, or a change to the incident-response process — will be reflected by an updated "Last updated" date at the top of this document and, where material to customers, communicated via the app's Atlassian Marketplace listing.</p>
+
+    <h2>16. Contact</h2>
+    <p>Security questions, concerns, or vulnerability reports:</p>
+    <p><strong>Ayman Idris</strong> (ABN 59 540 661 752)<br>
+    Email: idrisayman88@gmail.com</p>
+
+    <footer><p><em>This document describes the security practices and architectural properties of IWRI in plain language. It is provided for transparency and procurement review. For legal interpretation, consult a qualified legal professional in your jurisdiction.</em></p></footer>
+  </main>
+</body>
+</html>
