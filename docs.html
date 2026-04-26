@@ -530,10 +530,14 @@
   <h3>Post-install state</h3>
 
   <p>
-    Installing the app does <em>not</em> trigger an immediate computation. All configuration starts
-    at defaults (access mode Open, cadence Daily, no excluded projects, no team groups, the
-    installing admin becomes the sole Jira admin). The first scheduled run fires at the platform's
-    daily cadence; an administrator can run it on demand at any time from Settings &rarr; Recompute.
+    Installing the app loads it with safe defaults (access mode Open, cadence Daily, no excluded
+    projects, no team groups, the installing admin becomes the sole IWRI admin). The first
+    administrator to open IWRI is greeted by the onboarding dialog (see
+    <a class="inline-link" href="#onboarding">&sect; 03</a>). On <em>Finish setup</em> or
+    <em>Do this later</em>, IWRI automatically runs the first computation in the background and
+    reloads the Dashboard with results when it completes — no Settings round-trip is required to
+    see scores. Admins can still trigger a recomputation on demand at any time from Settings
+    &rarr; Recompute.
   </p>
 </section>
 
@@ -542,12 +546,12 @@
   <h2><span class="num">&sect; 03</span> First-run onboarding</h2>
 
   <p>
-    The first administrator to open IWRI after install is greeted by a guided seven-step onboarding
+    The first administrator to open IWRI after install is greeted by a guided six-step onboarding
     dialog. The state is stored per Jira site (not per admin), so if one admin pauses at step 4, the
     next admin to open the app resumes at step 4.
   </p>
 
-  <h3>The seven steps</h3>
+  <h3>The six steps</h3>
 
   <ol>
     <li><strong>Welcome.</strong> Orients the admin to what IWRI is and what the tour will cover.</li>
@@ -557,8 +561,6 @@
       Admin-granted. See <a class="inline-link" href="#access">&sect; 10 Access control</a>.</li>
     <li><strong>Administrators.</strong> Delegate app-admin rights to non-Jira-admins (optional).</li>
     <li><strong>Schedule.</strong> Choose recompute cadence: Daily or Weekly.</li>
-    <li><strong>Compute.</strong> Optionally kick off the first computation on demand rather than
-      waiting for the scheduled trigger.</li>
     <li><strong>Notes.</strong> Introduction to team annotations — free-text notes admins can
       attach to any team, visible to anyone with access to that team's scores.</li>
   </ol>
@@ -568,6 +570,17 @@
     records an <code>onboarding:state</code> of <code>skipped</code>. Admins can resume onboarding
     from a banner that appears at the top of the Settings tab whenever the state is not
     <code>completed</code>.
+  </p>
+
+  <h3>Automatic first computation</h3>
+  <p>
+    Once the admin clicks <em>Finish setup</em> on the final step (or chooses <em>Do this later</em>
+    to skip), IWRI takes over the first computation automatically. A full-screen overlay confirms
+    that the first analysis is being prepared, the indicator pipeline runs in the background, and
+    the dashboard reloads with results when the run completes — typically within a few minutes.
+    No additional click is required to see scores after onboarding. If the run fails, the overlay
+    surfaces the error with a <em>Try again</em> action so the admin can retry without leaving the
+    page.
   </p>
 </section>
 
@@ -616,7 +629,7 @@
       <tr><td><span class="risk-chip moderate">Moderate</span></td><td>2 flags</td><td>Two converging signatures; a conversation is warranted.</td></tr>
       <tr><td><span class="risk-chip elevated">Elevated</span></td><td>3 flags</td><td>Three converging signatures; active attention recommended.</td></tr>
       <tr><td><span class="risk-chip high">High</span></td><td>4–5 flags</td><td>Strong convergence; investigate with the team lead.</td></tr>
-      <tr><td><span class="risk-chip insufficient">Insufficient data</span></td><td>n/a</td><td>Too few sprints, null indicators, or partial coverage.</td></tr>
+      <tr><td><span class="risk-chip insufficient">Insufficient data</span></td><td>n/a</td><td>Team passed eligibility but every sprint-level indicator resolved to null (e.g. zero committed items across the analysed sprints). Teams that fail eligibility are listed separately under Excluded, not here.</td></tr>
     </tbody>
   </table>
 </section>
@@ -658,18 +671,49 @@
     level for fast scanning. Clicking a card opens the drill-down view.
   </p>
 
+  <h3>Team-group sections</h3>
+  <p>
+    When team groups are configured (Settings &rarr; Groups), the dashboard renders eligible teams
+    under their group name as a heading, with one card grid per group. Groups appear in the order
+    they are declared in Settings; any group whose teams have all been filtered out collapses
+    silently. Teams that do not belong to any configured group fall into a trailing
+    &ldquo;Ungrouped&rdquo; section. With no groups configured, the dashboard remains a single flat
+    grid. Within a group, the existing sort applies: bookmarked teams first, then by risk level,
+    flag count, and project name.
+  </p>
+
   <h3>Bookmarks</h3>
   <p>
     Any user with access can bookmark a team. Bookmarked teams are pinned to the top of the grid on
     their next visit. Bookmarks are stored per user, per site.
   </p>
 
-  <h3>Excluded teams</h3>
+  <h3>Not included in analysis</h3>
   <p>
-    Teams that were considered but did not meet eligibility criteria are listed in a collapsible
-    section below the main grid (admin-visible by default; see <a class="inline-link" href="#access">&sect; 10</a>).
-    Each excluded team shows the reason (Kanban, too few sprints, too few active assignees, etc.)
-    so admins can decide whether to adjust configuration.
+    Teams that were considered but did not meet all of the eligibility criteria are listed in a
+    collapsible &ldquo;Not included in analysis&rdquo; section below the main grid (admin-visible
+    by default; see <a class="inline-link" href="#access">&sect; 10</a>). The same teams appear as
+    the Excluded Teams report on the Reports tab. Each team shows the criterion or criteria it
+    failed:
+  </p>
+  <ul>
+    <li><strong>Kanban (not supported)</strong> — board is Kanban, not Scrum.</li>
+    <li><strong>Not enough history</strong> — project is less than 90 days old.</li>
+    <li><strong>Inactive in recent sprints</strong> — no issue updates in the last 30 days.</li>
+    <li><strong>Incompatible workflow</strong> — workflow is missing the In Progress or Done status
+      categories.</li>
+    <li><strong>Too few completed sprints</strong> — fewer than two completed sprints in the 90-day
+      window.</li>
+    <li><strong>Sprints too short</strong> — no completed sprint of seven days or longer.</li>
+    <li><strong>Too few team members</strong> — fewer than three distinct assignees on Story, Task,
+      or Bug issues across the analysed sprints.</li>
+    <li><strong>Admin excluded</strong> — manually excluded via Settings &rarr; Excluded Projects,
+      regardless of whether the team would otherwise have qualified.</li>
+  </ul>
+  <p>
+    Excluded teams are not part of the scored population and do not influence any other team&rsquo;s
+    z-scores. If a team&rsquo;s circumstances change (it accrues more sprint history, gains more
+    assignees, becomes active again), it automatically becomes eligible on the next computation run.
   </p>
 </section>
 
@@ -795,12 +839,26 @@
   <h3>Eligibility rules (exhaustive)</h3>
   <ol>
     <li>Project board is Scrum (Kanban excluded as unsupported in v1).</li>
-    <li>Project has at least one completed sprint within 90 days.</li>
-    <li>Completed sprints within the 90-day window with duration ≥ 7 days: at least 2 required.</li>
-    <li>At least three distinct assignees across the analysed sprints.</li>
+    <li>Project is at least 90 days old, measured from the creation date of its oldest issue
+      (maturity gate).</li>
+    <li>At least one issue has been updated within the last 30 days (activity gate).</li>
+    <li>Project workflow includes both an &ldquo;In Progress&rdquo; and a &ldquo;Done&rdquo; status
+      category.</li>
+    <li>At least two completed sprints within the 90-day window, with at least one sprint of
+      duration ≥ 7 days.</li>
+    <li>At least three distinct assignees on Story, Task, or Bug issues across the analysed
+      sprints.</li>
     <li>Project not manually excluded by an admin (Settings &rarr; Excluded Projects).</li>
     <li>Project fits the global population cap (details surface in the Methodology tab).</li>
   </ol>
+
+  <p>
+    A team that fails any rule above is routed to the &ldquo;Not included in analysis&rdquo; section
+    on the Dashboard (also surfaced as the Excluded Teams report on the Reports tab) with the exact
+    failed criterion shown. Excluded teams do not enter the scored population and do not affect any
+    other team&rsquo;s z-scores. The maturity and activity gates are computed against live Jira
+    timestamps on every run, so a project becomes eligible automatically the moment it qualifies.
+  </p>
 
   <h3>The seven indicators</h3>
 
@@ -903,23 +961,26 @@
   <h3>Recompute</h3>
   <p>
     Trigger a recomputation on demand. The UI shows a spinner and live stage indicator while the
-    job runs (fetching data, computing indicators, standardising, applying flags, persisting).
-    Admins also have a <strong>Clear history</strong> option for wedged states that deletes all
-    historical run records while preserving the last successful score set.
+    job runs (fetching data, computing indicators, standardising, applying flags, persisting). When
+    the run finishes, the page reloads automatically so the new scores appear without further
+    interaction. Admins also have a <strong>Clear history</strong> option for wedged states that
+    deletes all historical run records while preserving the last successful score set.
   </p>
 
   <h3>Schedule</h3>
   <p>
-    Choose a cadence of <strong>Daily</strong> or <strong>Weekly</strong>. Changing the cadence
-    auto-triggers a recompute (no-op saves skip the trigger). Live feedback mirrors the Recompute
-    section.
+    Choose a cadence of <strong>Daily</strong> or <strong>Weekly</strong>. Saving a cadence change
+    auto-triggers a recompute (no-op saves skip the trigger). When that recompute finishes, the
+    page reloads automatically; live feedback while it runs mirrors the Recompute section.
   </p>
 
   <h3>Excluded Projects</h3>
   <p>
     Manually exclude projects from analysis. The picker is group-aware: projects are grouped by team
     group where applicable, with per-group <em>Select all</em> toggles. Projects that fail
-    eligibility criteria are still selectable but display an <code>EXCLUDED</code> lozenge.
+    eligibility criteria are still selectable but display an <code>EXCLUDED</code> lozenge. Saving
+    exclusion changes auto-triggers a recompute and reloads the page when results are ready, so the
+    Dashboard always reflects the latest population.
   </p>
 
   <h3>Groups</h3>
@@ -1126,19 +1187,25 @@
 <section class="doc" id="faq">
   <h2><span class="num">&sect; 14</span> FAQ &amp; troubleshooting</h2>
 
-  <h3>Why does my dashboard say &ldquo;Insufficient data&rdquo; for a team I expected to see scored?</h3>
+  <h3>I expected to see a team scored, but it isn&rsquo;t on the Dashboard. Where is it?</h3>
   <p>
-    Most likely the team has fewer than three distinct assignees across the analysed window, fewer
-    than two completed sprints of ≥ 7 days, or all its sprint-level indicators resolve to null. Open
-    the Reports tab &rarr; Excluded Teams to see the exact reason.
+    A team that fails any eligibility rule is routed to the &ldquo;Not included in analysis&rdquo;
+    section at the bottom of the Dashboard (and shown as the Excluded Teams report on the Reports
+    tab) with the exact failed criterion. Common reasons: the project is Kanban; the project is less
+    than 90 days old; no Jira issue has been updated in the last 30 days; the workflow lacks an
+    In Progress or Done category; fewer than two completed sprints of ≥ 7 days; fewer than three
+    distinct assignees on Story, Task, or Bug issues; or an admin has manually excluded the project
+    via Settings &rarr; Excluded Projects.
   </p>
 
-  <h3>I expected to see all of our projects in the population. Why are some missing?</h3>
+  <h3>What does the &ldquo;Insufficient data&rdquo; risk level mean?</h3>
   <p>
-    Possible causes: the project is Kanban (excluded in v1); the project has been manually excluded
-    by an admin (Settings &rarr; Excluded Projects); the project has no recent sprints within the
-    90-day window; the project failed the team-size or sprint-duration floor. The Excluded Teams
-    report lists every exclusion with its reason.
+    The team passed every eligibility rule but the indicator pipeline could not produce a usable
+    z-score on any of the seven signals — for example, a team with completed sprints but no
+    committed items, or no completed items in the analysed window. The team is shown on the
+    Dashboard with the Insufficient data lozenge rather than being placed at Healthy by default.
+    Eligibility failures (sprint count, team size, maturity, activity, workflow, board type) are not
+    shown as Insufficient data; those teams appear under Not included in analysis instead.
   </p>
 
   <h3>The run failed with a population-minimum error. What do I do?</h3>
