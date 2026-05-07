@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eligibility Criteria — Invisible Work Risk Index</title>
+  <meta name="description" content="Eligibility criteria for projects scored by the Invisible Work Risk Index Atlassian Forge app.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <nav class="doc-nav"><a href="./">Invisible Work Risk Index</a> &middot; <a href="./eligibility.html" aria-current="page">Eligibility</a> &middot; <a href="./methodology.html">Methodology</a> &middot; <a href="./privacy.html">Privacy</a> &middot; <a href="./terms.html">Terms</a> &middot; <a href="./security.html">Security</a></nav>
+
+    <h1>IWRI Eligibility Criteria</h1>
+
+    <p><strong>Last updated:</strong> 7 May 2026</p>
+
+    <p>The <strong>Invisible Work Risk Index</strong> (IWRI) is a screening tool that compares Scrum teams within your Jira instance against each other. To produce statistically meaningful comparisons, IWRI requires a minimum population of eligible projects, and each project must meet a small set of data-quality criteria. This page describes both.</p>
+
+    <h2>Population minimum</h2>
+
+    <p><strong>IWRI requires at least 20 eligible Scrum projects on a single Jira Cloud site.</strong> Below this threshold, the app will install but cannot produce risk scores: there is not enough comparable data to compute a stable population mean and standard deviation, which IWRI uses to standardise every indicator. If your site has fewer than 20 eligible projects, IWRI will display an explanation in the Settings tab rather than misleading numbers.</p>
+
+    <p>Why 20? The risk levels IWRI surfaces are <em>relative</em>, not absolute. Every indicator is converted to a z-score showing how far a team sits from the population average. With too few teams in the population, individual outliers swamp the average and make the standard deviation unstable, so flags would fire or fail to fire essentially at random. Twenty is the smallest population at which the population statistics begin to behave reliably.</p>
+
+    <h2>Per-project eligibility criteria</h2>
+
+    <p>Each Scrum project on your site is evaluated against eight criteria. A project is eligible only if it passes all eight. Projects that fail one or more are excluded from the scored population. They still appear in filter dropdowns (greyed out, marked &ldquo;Excluded&rdquo;) so admins can see them, but they do not contribute to or receive scores.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Criterion</th>
+          <th>Threshold</th>
+          <th>Why it matters</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Project maturity</strong></td>
+          <td>At least 90 days old</td>
+          <td>New projects lack the historical data needed for reliable trend analysis. Scoring them too early would produce misleading comparisons.</td>
+        </tr>
+        <tr>
+          <td><strong>Recent activity</strong></td>
+          <td>Activity within the last 30 days</td>
+          <td>Dormant or archived projects would skew the population statistics with stale data, distorting z-scores for active teams.</td>
+        </tr>
+        <tr>
+          <td><strong>Workflow configuration</strong></td>
+          <td>In Progress and Done status categories</td>
+          <td>IWRI relies on workflow transitions to measure work patterns. Without these categories, key indicators like velocity and commitment cannot be computed.</td>
+        </tr>
+        <tr>
+          <td><strong>Sprint history</strong></td>
+          <td>At least 2 completed sprints in the last 90 days</td>
+          <td>A single sprint provides no basis for comparison or trend detection. At least two data points are needed to identify patterns.</td>
+        </tr>
+        <tr>
+          <td><strong>Team size</strong></td>
+          <td>At least 3 distinct assignees</td>
+          <td>Very small teams (one or two people) produce statistically unreliable per-person metrics and can generate misleading outlier scores.</td>
+        </tr>
+        <tr>
+          <td><strong>Sprint duration</strong></td>
+          <td>At least 1 sprint of 7 or more days</td>
+          <td>Very short sprints (for example one-day spikes or test sprints) do not represent normal work cadences and would distort velocity-based indicators.</td>
+        </tr>
+        <tr>
+          <td><strong>Board type</strong></td>
+          <td>Scrum board</td>
+          <td>IWRI&rsquo;s methodology rests on sprint-scoped commitment, completion, and mid-sprint-change signals. None of these have meaningful equivalents in Kanban, so Kanban-only projects are not analysed.</td>
+        </tr>
+        <tr>
+          <td><strong>Data availability</strong></td>
+          <td>Project data loadable from Jira</td>
+          <td>When a Jira lookup fails (project deleted, permission lost, network error), IWRI cannot judge maturity or activity reliably. The project is surfaced so admins can investigate, and returns to eligibility automatically once the data loads on the next run.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Administrator exclusions</h2>
+
+    <p>Administrators can also explicitly exclude a project that would otherwise pass the criteria, for example a sandbox project, a training board, or a team undergoing a major restructure. Excluded projects appear with an &ldquo;Admin excluded&rdquo; label in the Settings tab and do not contribute to scoring.</p>
+
+    <h2>What exclusion means in practice</h2>
+
+    <p>Excluded projects are not part of the scored population and do not influence the z-score distribution. They still appear in filter dropdowns, greyed out and marked &ldquo;Excluded&rdquo;, so you can see which teams belong to each group, but they cannot be selected for reports. If a team&rsquo;s circumstances change (for example it gains more sprint history, or completes its first 90 days), it automatically becomes eligible in the next computation run.</p>
+
+    <h2>Pre-installation check</h2>
+
+    <p>Before installing, you can estimate whether your site is likely to meet the threshold by counting Jira projects that:</p>
+    <ul>
+      <li>Are at least 90 days old</li>
+      <li>Are backed by a Scrum board</li>
+      <li>Have completed two or more sprints in the last 90 days</li>
+      <li>Have at least three distinct assignees</li>
+    </ul>
+    <p>If you have at least 20 such projects, IWRI will produce reliable scores. After installation, the Settings tab shows a live eligibility assessment with per-project verdicts, so you can see exactly which projects are eligible, excluded, or close to passing.</p>
+
+    <h2>Methodology</h2>
+
+    <p>For the full methodology, including the seven indicators, the z-score standardisation, and the five flags, see the <a href="./methodology.html">IWRI Methodology</a> page.</p>
+
+    <footer><p><em>Drafted in plain language for transparency. The eligibility logic implemented in the app is the source of truth and may be refined over time.</em></p></footer>
+  </main>
+</body>
+</html>

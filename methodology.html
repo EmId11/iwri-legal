@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Methodology — Invisible Work Risk Index</title>
+  <meta name="description" content="How the Invisible Work Risk Index Atlassian Forge app computes risk scores: research origin, indicators, z-scores, flags, and known limitations.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <nav class="doc-nav"><a href="./">Invisible Work Risk Index</a> &middot; <a href="./eligibility.html">Eligibility</a> &middot; <a href="./methodology.html" aria-current="page">Methodology</a> &middot; <a href="./privacy.html">Privacy</a> &middot; <a href="./terms.html">Terms</a> &middot; <a href="./security.html">Security</a></nav>
+
+    <h1>IWRI Methodology</h1>
+
+    <p><strong>Last updated:</strong> 7 May 2026</p>
+
+    <p>The <strong>Invisible Work Risk Index</strong> (IWRI) is a screening tool. It analyses sprint and issue data already in Jira to surface Scrum teams whose workflow patterns suggest hidden invisible work, and points you to where to start a conversation: which team, which sprint, which signal. The goal is to help you ask better questions about effort that is not showing up in the numbers.</p>
+
+    <p>IWRI rests on three principles:</p>
+    <ul>
+      <li><strong>Relative, not absolute.</strong> Every score is measured against the population on your own site, not an industry average.</li>
+      <li><strong>Screening, not diagnosis.</strong> A flag indicates a pattern worth investigating. It is not a verdict.</li>
+      <li><strong>Conversation starter.</strong> Flags are designed to start conversations, not drive performance decisions.</li>
+    </ul>
+
+    <h2>1. Where the seven signals came from</h2>
+
+    <p>Every team does work that never makes it into Jira: mentoring juniors, responding to incidents, fixing things before they become tickets, answering questions in Slack. That &ldquo;invisible work&rdquo; drains capacity, skews estimates, and burns people out. The research question was: <strong>can you detect it from the data teams already have?</strong></p>
+
+    <p>We studied <strong>hundreds of Scrum teams</strong> across multiple organisations in banking, telecommunications, and other sectors. Each team rated their own volume of invisible work through structured surveys. Team leads were then interviewed to map what kinds of invisible work they experienced and where it showed up in their workflow. Over <strong>20 candidate indicators</strong> (patterns in sprint data, ticket behaviour, and activity logs) were tested against this self-reported data. Indicators that did not show a consistent, repeatable pattern were removed.</p>
+
+    <p>Seven indicators survived. Each captures a different facet of how invisible work manifests in team data, and each has a documented split-half reliability score between 53 and 86 percent.</p>
+
+    <h2>2. Pipeline at a glance</h2>
+
+    <p>IWRI transforms raw Jira data into risk signals through a six-stage pipeline. Each stage builds on the previous, ensuring that the final risk assessment is grounded in measurable, standardised data rather than subjective judgement.</p>
+    <ol>
+      <li><strong>Discover projects</strong> on the Jira site.</li>
+      <li><strong>Apply eligibility filters</strong> (see the <a href="./eligibility.html">Eligibility</a> page).</li>
+      <li><strong>Pull sprint and issue data</strong> for each eligible project.</li>
+      <li><strong>Compute the seven raw indicators</strong> per team.</li>
+      <li><strong>Standardise</strong> each indicator into a z-score against the site population.</li>
+      <li><strong>Translate z-scores into flags and risk levels</strong>.</li>
+    </ol>
+
+    <h2>3. What we analyse</h2>
+
+    <p>IWRI examines completed sprint data for eligible projects. The analysis window and filters ensure statistical relevance while capturing recent team behaviour.</p>
+
+    <table>
+      <thead>
+        <tr><th>Parameter</th><th>Value</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Sprint window</td><td>Last 8 completed sprints within 90 days</td></tr>
+        <tr><td>Minimum sprint duration</td><td>7 days per sprint</td></tr>
+        <tr><td>Issue types</td><td>Story, Task, Bug (not sub-tasks or epics)</td></tr>
+        <tr><td>Commitment window</td><td>2 calendar days from sprint start</td></tr>
+        <tr><td>Population minimum</td><td>20 eligible projects required for scoring</td></tr>
+        <tr><td>Team size</td><td>3 or more distinct assignees</td></tr>
+      </tbody>
+    </table>
+
+    <h2>4. Eligibility</h2>
+
+    <p>Only projects that meet every eligibility criterion are scored. Projects that fail one or more are excluded from the scored population. They still appear in filter dropdowns (greyed out, marked &ldquo;Excluded&rdquo;) but do not contribute to or receive scores.</p>
+    <p>The full criteria set, including the population minimum of 20 eligible projects, is documented on the <a href="./eligibility.html">Eligibility</a> page.</p>
+
+    <h2>5. The seven indicators</h2>
+
+    <p>Each indicator measures a specific dimension of team workflow behaviour. The first three are averaged into a composite called <strong>Completing Less Than Planned</strong>. The remaining four are assessed independently, and each powers its own flag.</p>
+
+    <h3>Sprint-delivery indicators (feed Completing Less Than Planned)</h3>
+
+    <table>
+      <thead>
+        <tr><th>Indicator</th><th>What it measures</th><th>Formula</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Velocity Stability</strong></td>
+          <td>How inconsistent a team&rsquo;s completed work is relative to total demand. High residual means velocity swings more than demand, a sign of capacity instability.</td>
+          <td><code>CV(velocity) &minus; CV(demand)</code></td>
+        </tr>
+        <tr>
+          <td><strong>Commitment Gaps</strong></td>
+          <td>The average shortfall between what a team commits to and what they deliver. Over-delivery is clamped to zero; this only measures under-delivery.</td>
+          <td><code>mean( max(0, (committed &minus; completed) / committed) )</code></td>
+        </tr>
+        <tr>
+          <td><strong>Work Left Undone</strong></td>
+          <td>The proportion of committed work that was never started by the time the sprint closed. A high value suggests overcommitment or displacement by unplanned work.</td>
+          <td><code>mean( notStartedCount / committedCount )</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Independent signals (each fires its own flag)</h3>
+
+    <table>
+      <thead>
+        <tr><th>Indicator</th><th>What it measures</th><th>Formula</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Tracking per Person</strong></td>
+          <td>Issues tracked per person per week. Teams tracking fewer items per developer than peers may have significant work happening outside Jira. Sign-flipped: low values indicate higher risk.</td>
+          <td><code>mean( totalIssues / teamSize / sprintWeeks )</code></td>
+        </tr>
+        <tr>
+          <td><strong>Daily Jira Activity</strong></td>
+          <td>The proportion of working days with zero Jira activity. Higher values suggest potential disengagement or work happening elsewhere.</td>
+          <td><code>mean( zeroActivityDays / totalWorkingDays )</code></td>
+        </tr>
+        <tr>
+          <td><strong>Ticket Descriptions</strong></td>
+          <td>The proportion of completed tickets with empty descriptions. Sparse descriptions often indicate rushed creation or verbal-only requirements.</td>
+          <td><code>mean( emptyDescriptionCount / completedCount )</code></td>
+        </tr>
+        <tr>
+          <td><strong>Mid-Sprint Changes</strong></td>
+          <td>How unpredictable the volume of mid-sprint additions is across sprints. High volatility suggests inconsistent sources of interruption that destabilise planning.</td>
+          <td><code>CV( midSprintAdditions )</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>6. Z-score standardisation</h2>
+
+    <p>Raw indicator values are measured in different units: percentages, ratios, coefficients of variation. Z-score standardisation makes them comparable by expressing each value as <strong>standard deviations from the population mean</strong>.</p>
+
+    <p><code>z = (raw_value &minus; population_mean) / population_stddev</code></p>
+
+    <p>A z-score of 0 means the team is exactly average. A z-score of 1.5 means the team is 1.5 standard deviations above the population, in the direction of higher risk.</p>
+
+    <table>
+      <thead>
+        <tr><th>Band</th><th>Range</th><th>Interpretation</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Normal</td><td><code>z &le; 0</code></td><td>At or below the population average. No flag.</td></tr>
+        <tr><td>Low concern</td><td><code>0 &lt; z &le; 1</code></td><td>Above average but below the flag threshold. Informational only.</td></tr>
+        <tr><td>Moderate</td><td><code>1 &lt; z &le; 2</code></td><td>Flag fires. The team is meaningfully above the population average.</td></tr>
+        <tr><td>High</td><td><code>z &gt; 2</code></td><td>Flag fires. The team is in the top few percent on this indicator.</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Note on Tracking per Person:</strong> this is the only indicator where the z-score is sign-flipped. Lower density means higher risk (work may be happening outside Jira), so the z-score is multiplied by &minus;1 to maintain the convention that positive z = higher risk.</p>
+
+    <h2>7. How Completing Less Than Planned is computed</h2>
+
+    <p><strong>Completing Less Than Planned</strong> is the only signal built from a composite of three z-scores: <strong>Velocity Stability</strong>, <strong>Commitment Gaps</strong>, and <strong>Work Left Undone</strong>. The three are averaged with equal weight. The same value serves two purposes: it appears as an indicator on the team drill-down, and it fires as a flag when it exceeds 1.0.</p>
+
+    <p><code>CompletingLessThanPlanned = mean( z_velocityStability, z_commitmentGaps, z_workLeftUndone )</code></p>
+
+    <p><strong>Partial computation:</strong> if only one or two of the three components are available (for example, due to insufficient sprint data for one indicator), Completing Less Than Planned is computed from the available components. The UI shows &ldquo;N of 3 components&rdquo; so you can interpret accordingly.</p>
+
+    <h2>8. The five risk flags</h2>
+
+    <p>Flags are binary signals derived from z-scores. A flag is activated when the relevant z-score exceeds 1.0, meaning the team is more than one standard deviation above the population average for that risk dimension (roughly the 84th percentile). The threshold is deliberately strict: requiring a team to be well above the mean (not just above it) ensures that multiple converging flags produce a meaningful risk signal, not just noise.</p>
+
+    <table>
+      <thead>
+        <tr><th>Flag</th><th>Trigger</th><th>What it suggests</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Capacity Drain</strong></td>
+          <td>Completing Less Than Planned &gt; 1</td>
+          <td>The team consistently completes less than planned: velocity is unstable, commitments are missed, and planned work is left unstarted.</td>
+        </tr>
+        <tr>
+          <td><strong>Low Ticket Volume per Person</strong></td>
+          <td>z(Tracking per Person) &gt; 1 (sign-flipped)</td>
+          <td>The team tracks fewer items per developer than peers, suggesting significant work may be happening outside Jira.</td>
+        </tr>
+        <tr>
+          <td><strong>Low Day-to-Day Jira Activity</strong></td>
+          <td>z(Daily Jira Activity) &gt; 1</td>
+          <td>The team has more zero-activity days than peers. May indicate disengagement, burnout, or work in other tools.</td>
+        </tr>
+        <tr>
+          <td><strong>Tickets Lacking Descriptions</strong></td>
+          <td>z(Ticket Descriptions) &gt; 1</td>
+          <td>A higher proportion of completed tickets lack descriptions, suggesting rushed creation or verbal-only requirements.</td>
+        </tr>
+        <tr>
+          <td><strong>Unpredictable Mid-Sprint Changes</strong></td>
+          <td>z(Mid-Sprint Changes) &gt; 1</td>
+          <td>The volume of unplanned work added mid-sprint varies unpredictably, undermining sprint planning.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>9. Risk classification</h2>
+
+    <p>Risk level is determined solely by the number of active flags. The more flags triggered simultaneously, the less likely all of them are caused by benign confounders. Converging signals increase confidence that invisible work patterns are present.</p>
+
+    <table>
+      <thead>
+        <tr><th>Active flags</th><th>Risk level</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>0</td><td>Healthy</td></tr>
+        <tr><td>1</td><td>Watch</td></tr>
+        <tr><td>2</td><td>Elevated</td></tr>
+        <tr><td>3</td><td>Concerning</td></tr>
+        <tr><td>4</td><td>At Risk</td></tr>
+        <tr><td>5</td><td>High Risk</td></tr>
+      </tbody>
+    </table>
+
+    <h2>10. Known limitations</h2>
+
+    <p>IWRI is designed for transparency. These are the known limitations and assumptions built into the methodology.</p>
+
+    <table>
+      <thead>
+        <tr><th>Limitation</th><th>What it means</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Screening, not diagnosing</strong></td>
+          <td>Every indicator has alternative explanations. A flag indicates a pattern worth investigating. It does not confirm invisible work is present.</td>
+        </tr>
+        <tr>
+          <td><strong>Relative, not absolute</strong></td>
+          <td>Z-scores are relative within your scored population. A team with z = 1.5 is above average for your organisation, not the industry. Cross-organisation comparison is not supported.</td>
+        </tr>
+        <tr>
+          <td><strong>Adapted teams may be missed</strong></td>
+          <td>Teams that have already accommodated invisible work into their practices (for example by inflating estimates) may not trigger flags, because their patterns appear &ldquo;normal&rdquo; within the population.</td>
+        </tr>
+        <tr>
+          <td><strong>Persistence, not prediction</strong></td>
+          <td>Split-half reliability demonstrates that patterns persist across sprint halves, but this is not predictive or construct validity.</td>
+        </tr>
+        <tr>
+          <td><strong>Uniform sizing assumption</strong></td>
+          <td>Issue-count-based indicators assume approximately uniform issue sizing. Teams with highly variable story point distributions may see skewed results.</td>
+        </tr>
+        <tr>
+          <td><strong>Team-size confound</strong></td>
+          <td>Daily Jira Activity correlates with team size. Smaller teams naturally have more zero-activity days. This known confound is flagged in the UI but not adjusted for.</td>
+        </tr>
+        <tr>
+          <td><strong>Internal comparison only</strong></td>
+          <td>IWRI scores are meaningful within a single organisation&rsquo;s scored population. Comparing scores across different organisations or Jira instances is not valid.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <footer><p><em>This methodology page mirrors the Methodology tab inside the app. The in-app version is the source of truth and may be refined as the indicators are tested against new data.</em></p></footer>
+  </main>
+</body>
+</html>
